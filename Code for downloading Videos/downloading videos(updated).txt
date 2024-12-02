@@ -1,0 +1,106 @@
+from bs4 import BeautifulSoup
+import requests
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Base URL and headers for requests
+base_url = "https://www.thenaturalsapphirecompany.com/pink-sapphires/?pagenum="
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    'Accept-Language': 'en-US, en;q=0.5'
+}
+
+# Base download folder
+download_base_folder = r"C:\Users\Muralish\Desktop\Pink sapphires"
+
+def process_page(page_num):
+    page_url = f"{base_url}{page_num}"
+    print(f"Processing Page {page_num}: {page_url}")
+    
+    # Create a folder for this page
+    page_folder = os.path.join(download_base_folder, f"Page{page_num}")
+    os.makedirs(page_folder, exist_ok=True)
+
+    # Request the page
+    try:
+        webpage = requests.get(page_url, headers=HEADERS)
+        webpage.raise_for_status()
+        soup = BeautifulSoup(webpage.content, "html.parser")
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to retrieve {page_url}: {e}")
+        return
+
+    # Find all product links
+    links = soup.find_all("div", attrs={'class': 'listingDetails'})
+    product_links = []
+    for link in links:
+        a_tag = link.find("a")
+        if a_tag and a_tag.get("href"):
+            product_links.append(a_tag.get("href"))
+
+    # Process each product on the page
+    for product_link in product_links:
+        full_url = f"https://www.thenaturalsapphirecompany.com{product_link}"
+        print("Checking Product URL:", full_url)
+
+        # Request the product page
+        try:
+            new_webpage = requests.get(full_url, headers=HEADERS)
+            new_webpage.raise_for_status()
+            new_soup = BeautifulSoup(new_webpage.content, "html.parser")
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to retrieve product page {full_url}: {e}")
+            continue
+
+        # Extract item ID using itemprop="sku"
+        item_id_element = new_soup.find("span", itemprop="sku")
+        item_id = item_id_element.text.strip() if item_id_element else "Unknown_ID"
+        print("Extracted Item ID:", item_id)
+
+        # Create a folder for each item using its ID
+        item_folder = os.path.join(page_folder, item_id)
+        os.makedirs(item_folder, exist_ok=True)
+
+        # Find video tags and download up to 2 videos per item
+        video_tags = new_soup.find_all("video")
+        video_count = 0  # Counter to limit video downloads
+        for idx, video in enumerate(video_tags, start=1):
+            if video_count >= 2:  # Limit to 2 videos per item
+                break
+            source_tag = video.find("source")
+            if source_tag and source_tag.get("src"):
+                video_src = source_tag.get("src")
+                if "phone-video.thenaturalsapphirecompany.com" in video_src:
+                    video_url = f"https:{video_src}"
+                    try:
+                        print(f"Downloading video: {video_url}")
+                        response = requests.get(video_url, headers=HEADERS)
+                        response.raise_for_status()
+
+                        # Create unique filename using item ID
+                        video_filename = os.path.join(item_folder, f"{item_id}_video{idx}.mp4")
+                        with open(video_filename, 'wb') as f:
+                            f.write(response.content)
+                        print(f"Downloaded: {video_filename}")
+
+                        video_count += 1  # Increment video count
+
+                    except requests.exceptions.RequestException as e:
+                        print(f"Failed to download {video_url}: {e}")
+
+    print(f"Completed downloading videos for Page {page_num}.\n")
+
+def main():
+    # Set the number of pages to process (1 to 10)
+    total_pages = 10
+
+    # Use ThreadPoolExecutor to run pages concurrently
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(process_page, page_num) for page_num in range(1, total_pages + 1)]
+        for future in as_completed(futures):
+            future.result()  # Handle the result or any exceptions
+
+    print("All pages processed and videos downloaded.")
+
+if __name__ == "__main__":
+    main()
