@@ -16,3 +16,4 @@ Gem appraisal for sapphires and Rubys
 
 
 
+![model_performance](https://github.com/user-attachments/assets/6b91906f-f219-4fce-9dd7-168057f761c9)
