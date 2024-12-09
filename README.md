@@ -16,4 +16,4 @@ Gem appraisal for sapphires and Rubys
 
 
 ## Model Performance Comparison
-![Model Performance Comparison](model_performance.png)
+![Model Performance Comparison](Sample_Model_Training/model_performance.png)
