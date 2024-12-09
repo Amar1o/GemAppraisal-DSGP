@@ -15,5 +15,4 @@ Gem appraisal for sapphires and Rubys
 | Accuracy | 0.8356    | 0.7569     | 0.7625   |
 
 
-## Model Performance Comparison
-![Model Performance Comparison](Sample_Model_Training/model_performance.png)
+
