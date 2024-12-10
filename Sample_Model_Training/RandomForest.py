@@ -30,11 +30,11 @@ scorer = make_scorer(f1_score, average='macro', zero_division=1)
 # Define hyperparameter grid for Random Forest (updated to prevent overfitting)
 param_grid = {
     'n_estimators': [100, 150, 200],
-    'max_depth': [5, 10, 15, 20],  # Limit depth to avoid overfitting
-    'min_samples_split': [5, 10, 15],  # Increased min_samples_split to avoid overfitting
-    'min_samples_leaf': [1, 2, 4],  # Limit leaf nodes
-    'max_features': ['sqrt', 'log2'],  # Limiting features considered for each split
-    'bootstrap': [True, False]  # Use bootstrap samples to help with overfitting
+    'max_depth': [5, 10, 15, 20],
+    'min_samples_split': [5, 10, 15],
+    'min_samples_leaf': [1, 2, 4],
+    'max_features': ['sqrt', 'log2'],
+    'bootstrap': [True, False]
 }
 
 # RandomizedSearchCV for hyperparameter tuning
@@ -42,11 +42,11 @@ rf_model = RandomForestClassifier(random_state=42)
 grid_search = RandomizedSearchCV(
     estimator=rf_model,
     param_distributions=param_grid,
-    n_iter=50,  # Number of parameter combinations to try
-    cv=3,  # 3-fold cross-validation
-    scoring=scorer,  # Macro F1-score
+    n_iter=50,
+    cv=3,
+    scoring=scorer,
     random_state=42,
-    n_jobs=-1  # Use all CPU cores
+    n_jobs=-1
 )
 
 # Fit the RandomizedSearchCV to the training data
@@ -59,42 +59,21 @@ print("Best F1-Score on Training Data:", grid_search.best_score_)
 # Use the best estimator from RandomizedSearchCV
 best_rf_model = grid_search.best_estimator_
 
-# Predictions on train, validation, and test sets
-train_preds = best_rf_model.predict(X_train)
-val_preds = best_rf_model.predict(X_val)
-test_preds = best_rf_model.predict(X_test)
+# Predictions on train, validation, and test sets (tuned model)
+tuned_train_preds = best_rf_model.predict(X_train)
+tuned_val_preds = best_rf_model.predict(X_val)
+tuned_test_preds = best_rf_model.predict(X_test)
 
-# Handle invalid values (NaN, inf) in predictions and targets
-train_preds = np.nan_to_num(train_preds, nan=0)  # Replace NaN with 0
-val_preds = np.nan_to_num(val_preds, nan=0)
-test_preds = np.nan_to_num(test_preds, nan=0)
+# Evaluate the tuned model with F1-score and accuracy
+tuned_train_f1 = f1_score(Y_train, tuned_train_preds, average='macro', zero_division=1)
+tuned_val_f1 = f1_score(Y_val, tuned_val_preds, average='macro', zero_division=1)
+tuned_test_f1 = f1_score(Y_test, tuned_test_preds, average='macro', zero_division=1)
 
-# Ensure targets are valid too
-Y_train = np.nan_to_num(Y_train, nan=0)
-Y_val = np.nan_to_num(Y_val, nan=0)
-Y_test = np.nan_to_num(Y_test, nan=0)
+tuned_train_accuracy = accuracy_score(Y_train, tuned_train_preds)
+tuned_val_accuracy = accuracy_score(Y_val, tuned_val_preds)
+tuned_test_accuracy = accuracy_score(Y_test, tuned_test_preds)
 
-# Evaluate the tuned model with F1-score and zero_division handling
-train_f1 = f1_score(Y_train, train_preds, average='macro', zero_division=1)
-val_f1 = f1_score(Y_val, val_preds, average='macro', zero_division=1)
-test_f1 = f1_score(Y_test, test_preds, average='macro', zero_division=1)
-
-print("\nTuned Random Forest Results")
-print("Train F1-Score:", train_f1)
-print("Validation F1-Score:", val_f1)
-print("Test F1-Score:", test_f1)
-
-# Evaluate with accuracy metrics
-train_accuracy = accuracy_score(Y_train, train_preds)
-val_accuracy = accuracy_score(Y_val, val_preds)
-test_accuracy = accuracy_score(Y_test, test_preds)
-
-print("\nTuned Random Forest Accuracy Results")
-print("Train Accuracy:", train_accuracy)
-print("Validation Accuracy:", val_accuracy)
-print("Test Accuracy:", test_accuracy)
-
-# Optional: Compare to default Random Forest without tuning
+# Default Random Forest (no tuning)
 default_rf_model = RandomForestClassifier(
     n_estimators=150,
     max_depth=10,
@@ -104,16 +83,33 @@ default_rf_model = RandomForestClassifier(
 )
 default_rf_model.fit(X_train, Y_train)
 
-# Default model evaluation
+# Predictions on train, validation, and test sets (default model)
 default_train_preds = default_rf_model.predict(X_train)
 default_val_preds = default_rf_model.predict(X_val)
 default_test_preds = default_rf_model.predict(X_test)
+
+# Evaluate the default model with F1-score and accuracy
+default_train_f1 = f1_score(Y_train, default_train_preds, average='macro', zero_division=1)
+default_val_f1 = f1_score(Y_val, default_val_preds, average='macro', zero_division=1)
+default_test_f1 = f1_score(Y_test, default_test_preds, average='macro', zero_division=1)
 
 default_train_accuracy = accuracy_score(Y_train, default_train_preds)
 default_val_accuracy = accuracy_score(Y_val, default_val_preds)
 default_test_accuracy = accuracy_score(Y_test, default_test_preds)
 
-print("\nDefault Random Forest Accuracy Results")
-print("Train Accuracy:", default_train_accuracy)
-print("Validation Accuracy:", default_val_accuracy)
-print("Test Accuracy:", default_test_accuracy)
+# Print Results
+print("\nDefault Random Forest Results")
+print(f"Train Accuracy: {default_train_accuracy:.4f}")
+print(f"Validation Accuracy: {default_val_accuracy:.4f}")
+print(f"Test Accuracy: {default_test_accuracy:.4f}")
+print(f"Train F1-Score: {default_train_f1:.4f}")
+print(f"Validation F1-Score: {default_val_f1:.4f}")
+print(f"Test F1-Score: {default_test_f1:.4f}")
+
+print("\nTuned Random Forest Results")
+print(f"Train Accuracy: {tuned_train_accuracy:.4f}")
+print(f"Validation Accuracy: {tuned_val_accuracy:.4f}")
+print(f"Test Accuracy: {tuned_test_accuracy:.4f}")
+print(f"Train F1-Score: {tuned_train_f1:.4f}")
+print(f"Validation F1-Score: {tuned_val_f1:.4f}")
+print(f"Test F1-Score: {tuned_test_f1:.4f}")
