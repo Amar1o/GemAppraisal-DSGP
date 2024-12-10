@@ -25,6 +25,24 @@ X_val, X_test, Y_val, Y_test = train_test_split(
     X_temp, Y_temp, test_size=0.5, random_state=42, stratify=Y_temp.values.argmax(axis=1)
 )
 
+# Train default SVM model
+default_svm_model = SVC(random_state=42, probability=True)  # Default parameters
+default_svm_model.fit(X_train, Y_train.values.argmax(axis=1))
+
+# Predictions for default SVM
+default_train_preds = default_svm_model.predict(X_train)
+default_val_preds = default_svm_model.predict(X_val)
+default_test_preds = default_svm_model.predict(X_test)
+
+# Evaluate default SVM accuracy and F1-score
+default_train_accuracy = accuracy_score(Y_train.values.argmax(axis=1), default_train_preds)
+default_val_accuracy = accuracy_score(Y_val.values.argmax(axis=1), default_val_preds)
+default_test_accuracy = accuracy_score(Y_test.values.argmax(axis=1), default_test_preds)
+
+default_train_f1 = f1_score(Y_train.values.argmax(axis=1), default_train_preds, average='macro', zero_division=1)
+default_val_f1 = f1_score(Y_val.values.argmax(axis=1), default_val_preds, average='macro', zero_division=1)
+default_test_f1 = f1_score(Y_test.values.argmax(axis=1), default_test_preds, average='macro', zero_division=1)
+
 # Define scorer for hyperparameter tuning (macro-averaged F1-score)
 scorer = make_scorer(f1_score, average='macro', zero_division=1)
 
@@ -59,17 +77,33 @@ print("SVM - Best F1-Score on Training Data:", svm_grid_search.best_score_)
 # Use the best estimator
 best_svm_model = svm_grid_search.best_estimator_
 
-# Predictions
+# Predictions for tuned SVM
 svm_train_preds = best_svm_model.predict(X_train)
 svm_val_preds = best_svm_model.predict(X_val)
 svm_test_preds = best_svm_model.predict(X_test)
 
-# Evaluate SVM
+# Evaluate tuned SVM accuracy and F1-score
+svm_train_accuracy = accuracy_score(Y_train.values.argmax(axis=1), svm_train_preds)
+svm_val_accuracy = accuracy_score(Y_val.values.argmax(axis=1), svm_val_preds)
+svm_test_accuracy = accuracy_score(Y_test.values.argmax(axis=1), svm_test_preds)
+
 svm_train_f1 = f1_score(Y_train.values.argmax(axis=1), svm_train_preds, average='macro', zero_division=1)
 svm_val_f1 = f1_score(Y_val.values.argmax(axis=1), svm_val_preds, average='macro', zero_division=1)
 svm_test_f1 = f1_score(Y_test.values.argmax(axis=1), svm_test_preds, average='macro', zero_division=1)
 
-print("\nSVM Results")
+# Display results
+print("\nDefault SVM Results")
+print("Train Accuracy:", default_train_accuracy)
+print("Validation Accuracy:", default_val_accuracy)
+print("Test Accuracy:", default_test_accuracy)
+print("Train F1-Score:", default_train_f1)
+print("Validation F1-Score:", default_val_f1)
+print("Test F1-Score:", default_test_f1)
+
+print("\nHyperparameter-Tuned SVM Results")
+print("Train Accuracy:", svm_train_accuracy)
+print("Validation Accuracy:", svm_val_accuracy)
+print("Test Accuracy:", svm_test_accuracy)
 print("Train F1-Score:", svm_train_f1)
 print("Validation F1-Score:", svm_val_f1)
 print("Test F1-Score:", svm_test_f1)
