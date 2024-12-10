@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import f1_score, make_scorer
+from sklearn.metrics import f1_score, accuracy_score, make_scorer
 
 # Load data
 file_path = r"C:\Users\Muralish\Desktop\Sapphires_Cleaned\Blue Sapphires\A Model training\final_combined_results.csv"
@@ -30,6 +30,31 @@ X_val, X_test, Y_val, Y_test = train_test_split(
 # Define scorer for hyperparameter tuning (macro-averaged F1-score)
 scorer = make_scorer(f1_score, average='macro', zero_division=1)
 
+# Default Gradient Boosting Classifier
+default_gb_model = GradientBoostingClassifier(random_state=42)
+default_gb_model.fit(X_train, Y_train)
+
+default_train_preds = default_gb_model.predict(X_train)
+default_val_preds = default_gb_model.predict(X_val)
+default_test_preds = default_gb_model.predict(X_test)
+
+# Default model evaluation
+default_train_f1 = f1_score(Y_train, default_train_preds, average='macro', zero_division=1)
+default_val_f1 = f1_score(Y_val, default_val_preds, average='macro', zero_division=1)
+default_test_f1 = f1_score(Y_test, default_test_preds, average='macro', zero_division=1)
+
+default_train_accuracy = accuracy_score(Y_train, default_train_preds)
+default_val_accuracy = accuracy_score(Y_val, default_val_preds)
+default_test_accuracy = accuracy_score(Y_test, default_test_preds)
+
+print("\nDefault Gradient Boosting Results")
+print("Train Accuracy:", default_train_accuracy)
+print("Validation Accuracy:", default_val_accuracy)
+print("Test Accuracy:", default_test_accuracy)
+print("Train F1-Score:", default_train_f1)
+print("Validation F1-Score:", default_val_f1)
+print("Test F1-Score:", default_test_f1)
+
 # Define hyperparameter grid for Gradient Boosting
 gb_param_grid = {
     'n_estimators': [100, 150, 200],
@@ -56,7 +81,7 @@ gb_grid_search = RandomizedSearchCV(
 gb_grid_search.fit(X_train, Y_train)
 
 # Best parameters and score for Gradient Boosting
-print("Gradient Boosting - Best Parameters:", gb_grid_search.best_params_)
+print("\nGradient Boosting - Best Parameters:", gb_grid_search.best_params_)
 print("Gradient Boosting - Best F1-Score on Training Data:", gb_grid_search.best_score_)
 
 # Use the best estimator
@@ -67,12 +92,19 @@ gb_train_preds = best_gb_model.predict(X_train)
 gb_val_preds = best_gb_model.predict(X_val)
 gb_test_preds = best_gb_model.predict(X_test)
 
-# Evaluate Gradient Boosting
+# Tuned model evaluation
 gb_train_f1 = f1_score(Y_train, gb_train_preds, average='macro', zero_division=1)
 gb_val_f1 = f1_score(Y_val, gb_val_preds, average='macro', zero_division=1)
 gb_test_f1 = f1_score(Y_test, gb_test_preds, average='macro', zero_division=1)
 
-print("\nGradient Boosting Results")
+gb_train_accuracy = accuracy_score(Y_train, gb_train_preds)
+gb_val_accuracy = accuracy_score(Y_val, gb_val_preds)
+gb_test_accuracy = accuracy_score(Y_test, gb_test_preds)
+
+print("\nTuned Gradient Boosting Results")
+print("Train Accuracy:", gb_train_accuracy)
+print("Validation Accuracy:", gb_val_accuracy)
+print("Test Accuracy:", gb_test_accuracy)
 print("Train F1-Score:", gb_train_f1)
 print("Validation F1-Score:", gb_val_f1)
 print("Test F1-Score:", gb_test_f1)
