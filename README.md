@@ -1,7 +1,7 @@
 # GemAppraisal-DSGP
 Gem appraisal for sapphires and Rubys
 
-## Model Performance Summary
+## Multi-Label Classification Model Performance Summary
 
 ### Default and Tuned Model Results
 
