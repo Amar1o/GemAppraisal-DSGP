@@ -1,0 +1,83 @@
+
+ 
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+
+# Load the dataset
+df = pd.read_csv('/content/combined_corundum_data (1).csv')
+
+# Print column names to verify
+print("Columns in the dataset:", df.columns)
+
+# Ensure column names are clean and consistent
+df.columns = df.columns.str.strip().str.lower()  # Remove whitespace and convert to lowercase
+
+# Check for the 'color' column or suggest alternatives
+if 'color' not in df.columns:
+    raise KeyError(f"'color' column is missing from the dataset. Available columns are: {list(df.columns)}")
+
+### Feature Engineering for Colors ###
+
+# Step 1: Map Similar Colors to Groups
+color_mapping = {
+    'Purple': 'Purple', 
+    'Violet': 'Purple', 
+    'Blue': 'Blue',
+    'Greyish Blue': 'Blue-Grey', 
+    'Bluish Grey': 'Blue-Grey',
+    'Purplish Blue': 'Blue-Purple',
+    'Bluish Purple': 'Blue-Purple',
+    'Green': 'Green',
+    'Pink': 'Pink',
+    'Purplish Pink': 'Pink-Purple',
+    'Pinkish Pink': 'Pink',
+    'Reddish Pink': 'Pink-Red',
+    'Pinkish Brown': 'Brown-Pink',
+    'Greenish Yellow': 'Yellow-Green',
+    'Yellowish Green': 'Yellow-Green',
+    'Yellow': 'Yellow',
+    'Orangish Yellow': 'Yellow-Orange',
+    'Yellowish Brown': 'Yellow-Brown',
+    'Yellowish Orange': 'Yellow-Orange',
+    'Pinkish Red': 'Pink-Red',
+    'Red': 'Red',
+    'Purplish Red': 'Purple-Red',
+    'Orangish Red': 'Red-Orange',
+    'Padparadscha (Pinkish-Orange / Orangish-Pink)': 'Padparadscha',
+    'White': 'White'
+}
+
+df['color_group'] = df['color'].map(color_mapping)
+
+# Step 2: One-Hot Encoding
+onehot_encoder = OneHotEncoder(sparse_output=False)
+onehot_encoded = onehot_encoder.fit_transform(df[['color_group']])
+color_onehot_columns = onehot_encoder.get_feature_names_out(['color_group'])
+color_onehot_df = pd.DataFrame(onehot_encoded, columns=color_onehot_columns)
+df = pd.concat([df, color_onehot_df], axis=1)
+
+# Step 3: Ordinal Encoding for Color Intensity
+color_intensity_order = {'Light': 1, 'Medium Light': 2, 'Medium': 3, 'Medium Intense': 4, 'Vivid': 5, 'Intense': 6}
+df['color_intensity_score'] = df['color_intensity'].map(color_intensity_order)
+
+# Step 4: Categorize Colors
+def color_category(color_group):
+    warm_colors = ['Red', 'Pink', 'Yellow', 'Orange', 'Padparadscha']
+    cool_colors = ['Blue', 'Purple', 'Green', 'Blue-Grey', 'Blue-Purple']
+    neutral_colors = ['White', 'Yellow-Brown', 'Brown-Pink']
+    if color_group in warm_colors:
+        return 'Warm'
+    elif color_group in cool_colors:
+        return 'Cool'
+    elif color_group in neutral_colors:
+        return 'Neutral'
+    else:
+        return 'Other'
+
+df['color_category'] = df['color_group'].apply(color_category)
+
+# Save the processed dataset
+df.to_csv('processed_gemstone_dataset.csv', index=False)
+print("Feature engineering completed and saved to 'processed_gemstone_dataset.csv'.")
+
+
