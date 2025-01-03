@@ -1,1 +1,155 @@
+import os
+import zipfile
+import cv2
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import normalize
+from skimage.feature import graycomatrix, graycoprops
+from google.colab import files
+
+# Step 1: Upload and extract the ZIP file
+def upload_and_extract_zip():
+    print("Upload your ZIP file containing the images:")
+    uploaded = files.upload()  # User uploads the ZIP file
+    zip_file = list(uploaded.keys())[0]  # Get the uploaded file name
+    folder_name = zip_file.replace(".zip", "")  # Folder name to extract to
+    with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+        zip_ref.extractall(folder_name)
+    print(f"Extracted folder: {folder_name}")
+    return folder_name
+
+# Step 2: Color Feature Extraction
+def extract_color_features(image_path):
+    image = cv2.imread(image_path)
+    if image is None:
+        print(f"Error loading image: {image_path}")
+        return None
+
+    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+    # Calculate histograms for R, G, B
+    hist_r = cv2.calcHist([rgb_image], [0], None, [256], [0, 256])
+    hist_g = cv2.calcHist([rgb_image], [1], None, [256], [0, 256])
+    hist_b = cv2.calcHist([rgb_image], [2], None, [256], [0, 256])
+
+    # Normalize histograms
+    hist_r = normalize(hist_r, axis=0, norm='l1').flatten()
+    hist_g = normalize(hist_g, axis=0, norm='l1').flatten()
+    hist_b = normalize(hist_b, axis=0, norm='l1').flatten()
+
+    # Calculate mean color values
+    avg_r = np.mean(rgb_image[:, :, 0])
+    avg_g = np.mean(rgb_image[:, :, 1])
+    avg_b = np.mean(rgb_image[:, :, 2])
+
+    return {
+        "Avg Red": avg_r,
+        "Avg Green": avg_g,
+        "Avg Blue": avg_b,
+        **{f"R Hist Bin {i}": hist_r[i] for i in range(256)},
+        **{f"G Hist Bin {i}": hist_g[i] for i in range(256)},
+        **{f"B Hist Bin {i}": hist_b[i] for i in range(256)},
+    }
+
+# Step 3: Clarity Feature Extraction
+def extract_clarity_features(image_path):
+    image = cv2.imread(image_path)
+    if image is None:
+        print(f"Error loading image: {image_path}")
+        return None
+
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Texture analysis using GLCM
+    glcm = graycomatrix(gray, distances=[1], angles=[0], levels=256, symmetric=True, normed=True)
+    contrast = graycoprops(glcm, 'contrast')[0, 0]
+    homogeneity = graycoprops(glcm, 'homogeneity')[0, 0]
+    energy = graycoprops(glcm, 'energy')[0, 0]
+    correlation = graycoprops(glcm, 'correlation')[0, 0]
+
+    # Edge density
+    edges = cv2.Canny(gray, 50, 150)
+    edge_density = np.sum(edges) / (gray.shape[0] * gray.shape[1])
+
+    # Intensity variance
+    intensity_variance = np.var(gray)
+
+    return {
+        "Contrast": contrast,
+        "Homogeneity": homogeneity,
+        "Energy": energy,
+        "Correlation": correlation,
+        "Edge Density": edge_density,
+        "Intensity Variance": intensity_variance,
+    }
+
+# Step 4: Cut Feature Extraction
+def extract_cut_features(image_path):
+    image = cv2.imread(image_path)
+    if image is None:
+        print(f"Error loading image: {image_path}")
+        return None
+
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray, 100, 200)
+
+    # Symmetry analysis
+    flipped_horizontal = cv2.flip(gray, 1)
+    symmetry_horizontal = np.mean(np.abs(gray - flipped_horizontal))
+
+    flipped_vertical = cv2.flip(gray, 0)
+    symmetry_vertical = np.mean(np.abs(gray - flipped_vertical))
+
+    return {
+        "Symmetry Horizontal": symmetry_horizontal,
+        "Symmetry Vertical": symmetry_vertical,
+    }
+
+# Step 5: Process All Images
+def process_images(input_folder):
+    features_list = []
+    for dirpath, dirnames, filenames in os.walk(input_folder):
+        for filename in filenames:
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                image_path = os.path.join(dirpath, filename)
+                image_name_helper = filename.split('_')[0]
+
+                # Extract features
+                color_features = extract_color_features(image_path) or {}
+                clarity_features = extract_clarity_features(image_path) or {}
+                cut_features = extract_cut_features(image_path) or {}
+
+                # Combine features
+                combined_features = {
+                    "Image": filename,
+                    "image_name_helper": image_name_helper,
+                    **color_features,
+                    **clarity_features,
+                    **cut_features,
+                }
+                features_list.append(combined_features)
+
+    return pd.DataFrame(features_list)
+
+# Step 6: Group by Image Name Helper
+def group_and_save_features(df, output_file):
+    mean_df = df.groupby("image_name_helper").mean(numeric_only=True).reset_index()
+    mean_df.to_csv(output_file, index=False)
+    print(f"Feature extraction completed. Grouped CSV saved to {output_file}.")
+
+# Main Execution
+if __name__ == "__main__":
+    # Upload and extract images
+    input_folder = upload_and_extract_zip()
+
+    # Process images for feature extraction
+    features_df = process_images(input_folder)
+
+    # Save grouped mean features
+    output_csv = "/content/PinkSapphire.csv"
+    group_and_save_features(features_df, output_csv)
+
+    # Optional: Download the result
+    files.download(output_csv)
+
 
