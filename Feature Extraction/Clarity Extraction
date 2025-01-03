@@ -1,0 +1,56 @@
+
+# Import necessary libraries
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+
+# Load your dataset
+df = pd.read_csv('/content/processed_combined_gemstone_dataset.csv')
+
+# Normalize column names to lowercase to avoid case sensitivity issues
+df.columns = df.columns.str.lower()
+
+# Check if 'clarity' exists
+if 'clarity' not in df.columns:
+    raise KeyError("'clarity' column not found. Available columns are:", df.columns)
+
+# Continue with feature engineering
+valid_clarity_types = ['Very Slightly Included', 'Slightly Included', 'Eye Clean', 'Included']
+df = df[df['clarity'].isin(valid_clarity_types)]
+
+# One-Hot Encoding
+onehot_encoder = OneHotEncoder(sparse_output=False)
+clarity_onehot_encoded = onehot_encoder.fit_transform(df[['clarity']])
+clarity_onehot_columns = onehot_encoder.get_feature_names_out(['clarity'])
+clarity_onehot_df = pd.DataFrame(clarity_onehot_encoded, columns=clarity_onehot_columns)
+df = pd.concat([df, clarity_onehot_df], axis=1)
+
+# Ordinal Encoding
+clarity_order = {
+    'Very Slightly Included': 1, 
+    'Slightly Included': 2, 
+    'Eye Clean': 3, 
+    'Included': 0
+}
+df['clarity_score'] = df['clarity'].map(clarity_order)
+
+# Custom Grouping
+def group_clarity(clarity):
+    if clarity == 'Eye Clean':
+        return 'High'
+    elif clarity == 'Slightly Included':
+        return 'Medium'
+    elif clarity == 'Very Slightly Included':
+        return 'Low'
+    else:  # 'Included'
+        return 'Very Low'
+
+df['clarity_group'] = df['clarity'].apply(group_clarity)
+
+# Save the processed DataFrame to a new CSV file
+output_file_path = '/content/combined_dataset_with_feature_extractionForClarity.csv'
+df.to_csv(output_file_path, index=False)
+
+# Display final processed DataFrame
+print(f"Processed data saved to {output_file_path}")
+print(df.head())
+
