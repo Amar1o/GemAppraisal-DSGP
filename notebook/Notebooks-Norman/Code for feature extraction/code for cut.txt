@@ -1,0 +1,135 @@
+import cv2
+import numpy as np
+import pandas as pd
+import os
+import glob
+
+def extract_geometric_features(image_path):
+    """
+    Extract geometric features from a gemstone image.
+    
+    Parameters:
+        image_path (str): Path to the image file.
+    
+    Returns:
+        dict: Extracted features.
+    """
+    features = {}
+    # Read the image
+    image = cv2.imread(image_path)
+    if image is None:
+        print(f"Warning: Unable to read image {image_path}. Skipping.")
+        return None
+
+    # Convert to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Apply Gaussian Blur to reduce noise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # Edge detection
+    edges = cv2.Canny(blurred, threshold1=50, threshold2=150)
+
+    # Find contours
+    contours, _ = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if not contours:
+        print(f"Warning: No contours found in image {image_path}. Skipping.")
+        return None
+
+    # Assume the largest contour corresponds to the gemstone
+    contour = max(contours, key=cv2.contourArea)
+
+    # Compute Bounding Rectangle
+    x, y, w, h = cv2.boundingRect(contour)
+    aspect_ratio = float(w) / h if h != 0 else 0
+
+    # Compute Perimeter and Area
+    perimeter = cv2.arcLength(contour, True)
+    area = cv2.contourArea(contour)
+
+    # Compute Circularity
+    circularity = (4 * np.pi * area) / (perimeter ** 2) if perimeter != 0 else 0
+
+    # Compute Convex Hull and Convexity
+    hull = cv2.convexHull(contour)
+    hull_area = cv2.contourArea(hull)
+    convexity = area / hull_area if hull_area != 0 else 0
+
+    # Compute Edge Sharpness
+    edge_sharpness = cv2.Laplacian(gray, cv2.CV_64F).var()
+
+    # Compute Symmetry Metrics
+    flipped_horizontal = cv2.flip(gray, 1)
+    symmetry_horizontal = cv2.absdiff(gray, flipped_horizontal)
+    horizontal_symmetry_score = 1 - (np.mean(symmetry_horizontal) / 255)
+
+    flipped_vertical = cv2.flip(gray, 0)
+    symmetry_vertical = cv2.absdiff(gray, flipped_vertical)
+    vertical_symmetry_score = 1 - (np.mean(symmetry_vertical) / 255)
+
+    symmetry = (horizontal_symmetry_score + vertical_symmetry_score) / 2
+
+    # Populate features
+    features['Image'] = os.path.basename(image_path)
+    features['Aspect_Ratio'] = aspect_ratio
+    features['Perimeter'] = perimeter
+    features['Area'] = area
+    features['Circularity'] = circularity
+    features['Convexity'] = convexity
+    features['Edge_Sharpness'] = edge_sharpness
+    features['Symmetry'] = symmetry
+
+    return features
+
+def process_images(input_folder, output_folder, output_csv):
+    """
+    Process all images in the input folder and extract geometric features.
+    
+    Parameters:
+        input_folder (str): Path to the input folder containing images.
+        output_folder (str): Path to the output folder to save CSV.
+        output_csv (str): Name of the output CSV file.
+    """
+    # Supported image extensions
+    image_extensions = ['*.png', '*.jpg', '*.jpeg', '*.bmp', '*.tiff']
+
+    # Gather all image paths
+    image_paths = []
+    for ext in image_extensions:
+        image_paths.extend(glob.glob(os.path.join(input_folder, ext)))
+
+    if not image_paths:
+        print(f"No images found in {input_folder}. Please check the path and file extensions.")
+        return
+
+    # List to hold all feature dictionaries
+    all_features = []
+
+    for img_path in image_paths:
+        features = extract_geometric_features(img_path)
+        if features:
+            all_features.append(features)
+
+    if not all_features:
+        print("No features extracted. Please check the images and try again.")
+        return
+
+    # Create DataFrame
+    df = pd.DataFrame(all_features)
+
+    # Ensure output folder exists
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Save to CSV
+    csv_path = os.path.join(output_folder, output_csv)
+    df.to_csv(csv_path, index=False)
+    print(f"Feature extraction completed. CSV saved at {csv_path}")
+
+if __name__ == "__main__":
+    # Define input and output paths
+    input_folder = r"C:\Users\Muralish\Desktop\Sapphires_Cleaned\Blue Sapphires\page1\B9543\cleaned\B9543_video2"
+    output_folder = os.path.join(input_folder, "FE")
+    output_csv = "geometric_features.csv"
+
+    process_images(input_folder, output_folder, output_csv)
