@@ -2,13 +2,18 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import FileUpload from "./FileUpload.jsx";
 
-function Dropdown({ label, name, options, onChange }) {
+function Dropdown({ label, name, options, value, onChange }) {
   return (
     <div className="form-control w-full max-w-xs">
       <label className="form-control w-full max-w-xs block font-medium text-gray-700">{label}: </label>
       <div className="mt-2">
-      <select name={name} onChange={onChange} className="select shadow rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline">
-        <option value="" disabled></option>
+      <select 
+        name={name} 
+        value={value}
+        onChange={onChange} 
+        className="select shadow rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
+      >
+        <option value=""></option>
         {Object.entries(options).map(([key, value]) => (
           <option key={key} value={value}>
             {key}
@@ -18,26 +23,32 @@ function Dropdown({ label, name, options, onChange }) {
       </div>
     </div>
   );
-}  
+}
 
-function InputText({ label, name, onChange }) {
+function InputText({ label, name, value, onChange }) {
   return (
     <div className="form-control w-full max-w-xs">
       <label className="form-control w-full max-w-xs block font-medium text-gray-700">{label}: </label>
       <div className="mt-2">
-      <input name={name} type='text' onChange={onChange} className="shadow rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline" />
+      <input 
+        name={name} 
+        type='text' 
+        value={value}
+        onChange={onChange} 
+        className="shadow rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline" 
+      />
       </div>
     </div>
   );
-}  
+}
 
 const PriceCalculator = () => {
   const [jsonData, setJsonData] = useState(null);
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const [file, setFile] = useState(null);
+  const [resetFile, setResetFile] = useState(false); // Track if file needs to be reset
 
   const [selectedValues, setSelectedValues] = useState({
     carat: "",
@@ -51,6 +62,8 @@ const PriceCalculator = () => {
     cut: "",
     type: "",
   });
+
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,10 +81,25 @@ const PriceCalculator = () => {
   const handleChange = (e) => {
     setSelectedValues({ ...selectedValues, [e.target.name]: e.target.value });
   };
+  const validateForm = () => {
+    // Check if all required fields are filled
+    for (const key in selectedValues) {
+      if (!selectedValues[key]) {
+        return false; // Field is missing
+      }
+    }
+    return true; // All fields are filled
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    if (!validateForm()) {
+      setError("Please fill in all required fields.");
+      setLoading(false);
+      return; // Stop further submission if validation fails
+    }
     const formData = new FormData();
   
     try {
@@ -109,7 +137,7 @@ const PriceCalculator = () => {
   const handleClear = (e) => {
     e.preventDefault();
     setSelectedValues({
-      carat:"",
+      carat: "",
       cutQuality: "",
       shape: "",
       origin: "",
@@ -120,9 +148,11 @@ const PriceCalculator = () => {
       cut: "",
       type: "",
     });
-    setFile(null); // Reset file as well
+    setFile(null);
+    setFormError("");
+    setError("");
+    setPrediction(null);
   };
-
   if (!jsonData) {
     return <p>Loading...</p>;
   }
@@ -131,76 +161,88 @@ const PriceCalculator = () => {
   return (
     <div>
       <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto flex sm:flex-wrap md:flex-nowrap gap-10 mt-12 items-center">
-      <FileUpload />
+      <FileUpload file={file} setFile={setFile} />
         <div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <InputText
         label="Carat" 
         name="carat"  
+        value={selectedValues.carat}
         onChange={handleChange} 
       />
       <Dropdown 
         label="Cut Quality" 
         name="cutQuality" 
         options={jsonData.cut_quality_mapping} 
+        value={selectedValues.cutQuality}
         onChange={handleChange} 
       />
         <Dropdown
           label="Shape"
           name="shape"
           options={jsonData.shape_mapping}
+          value={selectedValues.shape}
           onChange={handleChange}
         />
         <Dropdown
           label="Origin"
           name="origin"
           options={jsonData.origin_mapping}
+          value={selectedValues.origin}
           onChange={handleChange}
         />
         <Dropdown
           label="Color" 
           name="color"
           options={jsonData.color_mapping}  
+          value={selectedValues.color}
           onChange={handleChange}
         />        
         <Dropdown
           label="Color Intensity"         
           name="colorIntensity"         
-          options={jsonData.color_intensity_mapping}         
+          options={jsonData.color_intensity_mapping}   
+          value={selectedValues.colorIntensity}      
           onChange={handleChange}
         />
         <Dropdown
           label="Clarity"
           name="clarity"
           options={jsonData.clarity_mapping}         
+          value={selectedValues.clarity}
           onChange={handleChange}        
         />        
         <Dropdown
           label="Treatment"         
           name="treatment"         
           options={jsonData.treatment_mapping}         
+          value={selectedValues.treatment}
           onChange={handleChange}         
         />        
         <Dropdown         
           label="Cut"         
           name="cut"         
           options={jsonData.cut_mapping}         
+          value={selectedValues.cut}
           onChange={handleChange}         
         />        
         <Dropdown         
           label="Type"         
           name="type"         
-          options={jsonData.type_mapping}         
+          options={jsonData.type_mapping}      
+          value={selectedValues.type}   
           onChange={handleChange}         
         />  
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
-            <button type="button" onClick={handleClear} className="bg-transparent text-blue-500 font-semibold hover:text-blue-700 py-2 px-4 border border-blue-500 hover:border-blue-700 rounded">Clear</button>
+            <button type="button" onClick={handleClear} className="bg-transparent text-blue-500 font-semibold hover:text-blue-700 py-2 px-4 border border-blue-500 hover:border-blue-700 rounded">
+              Clear
+            </button>
             <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
           </div>
           {error && <p className="text-red-500 mt-4">{error}</p>}
+          {formError && <p className="text-red-500 mt-4">{formError}</p>}
           {prediction !== null && <p className="mt-4 text-lg font-bold">Estimated Price: ${prediction}</p>}
-        
         </div>
       </form>
     </div>

@@ -1,9 +1,6 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState } from "react";
 
-export default function FileUpload() {
-  const [file, setFile] = useState(null);
-
+export default function FileUpload({ file, setFile }) {
   const handleFileChange = (event) => {
     const uploadedFile = event.target.files[0];
     if (uploadedFile) {
@@ -13,7 +10,6 @@ export default function FileUpload() {
       });
     }
   };
-  
 
   return (
     <div className="flex flex-col w-1/2 h-full">
@@ -28,7 +24,6 @@ export default function FileUpload() {
             <img src={file.preview} alt="Uploaded preview" className="w-full h-full object-cover" />
           )
         ) : (
-
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
             <svg
               className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
