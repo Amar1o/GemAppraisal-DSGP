@@ -12,10 +12,10 @@ export default function FileUpload({ file, setFile }) {
   };
 
   return (
-    <div className="flex flex-col w-1/2 h-full">
+    <div className="flex flex-col h-full w-sm md:w-full mx-auto ">
       <label
         htmlFor="dropzone-file"
-        className="flex flex-col items-center justify-center w-[450px] h-[450px] border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 overflow-hidden"
+        className="flex flex-col items-center justify-center  h-64 md:h-[515px] lg:w-[515px]  border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 dark:hover:border-gray-500 overflow-hidden"
       >
         {file ? (
           file.file.type === "video/mp4" ? (
