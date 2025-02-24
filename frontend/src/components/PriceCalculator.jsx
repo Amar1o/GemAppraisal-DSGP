@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import FileUpload from "./FileUpload.jsx";
+import Footer from "./Footer.jsx";
+import Navbar from "./Navbar.jsx";
+import Disclaimer from "./Disclaimer.jsx";
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
@@ -123,6 +126,7 @@ const PriceCalculator = () => {
     });
   };
 
+  // Validation for form
   const validateForm = () => {
     // Check if all required fields are filled
     for (const key in selectedValues) {
@@ -216,6 +220,8 @@ const PriceCalculator = () => {
   }
   
   return (
+    <>
+    <Navbar />
     <div>
       <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4">
       <div className="w-3/4">
@@ -305,12 +311,17 @@ const PriceCalculator = () => {
             </button>
             <button type="submit" className="bg-gray-700 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded">Submit</button>
         </div>
-          {error && <p className="text-red-500 mt-4">{error}</p>}
-          {formError && <p className="text-red-500 mt-4">{formError}</p>}
-          {prediction !== null && <p className="mt-10 text-right text-xl font-bold ">Estimated Price: {formatPrice(prediction)}</p>}
+        <p className="text-red-500 mt-4 min-h-[32px] visibility-hidden">{error}</p>
+        <p className="text-red-500 mt-4 visibility-hidden">{formError}</p>
+        <p className="mt-4 text-right text-xl font-bold visibility-hidden">
+          {prediction !== null ? `Estimated Price: ${formatPrice(prediction)}` : ""}
+        </p>
         </div>
       </form>
     </div>
+    <Disclaimer />
+    <Footer />
+    </>
   );
 };
 
