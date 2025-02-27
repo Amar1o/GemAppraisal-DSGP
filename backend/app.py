@@ -56,7 +56,7 @@ def predict():
                                cut_encoded, treatment_encoded, type_encoded]])
 
         # Make prediction for price
-        prediction = model.predict(model_input)[0]
+        prediction = np.expm1(model.predict(model_input)[0])
 
         return jsonify({"price": float(prediction)})
 

@@ -135,6 +135,10 @@ const PriceCalculator = () => {
         return false; // Field is missing
       }
     }
+    // Ensure carat value is greater than 0.1
+    if (selectedValues.carat < 0.1) {
+      return false;
+    }
     return true; // All fields are filled
   };
 
@@ -145,7 +149,7 @@ const PriceCalculator = () => {
     setLoading(true);
     setError("");
     if (!validateForm()) {
-      setError("Please fill in all required fields.");
+      setError("Please fill in all required fields and ensure carat value is greater than 0.");
       setLoading(false);
       return; // Stop further submission if validation fails
     }
