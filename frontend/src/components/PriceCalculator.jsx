@@ -4,6 +4,7 @@ import FileUpload from "./FileUpload.jsx";
 import Footer from "./Footer.jsx";
 import Navbar from "./Navbar.jsx";
 import Disclaimer from "./Disclaimer.jsx";
+import Banner from "./Banner.jsx";
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
@@ -222,8 +223,10 @@ const PriceCalculator = () => {
   return (
     <>
     <Navbar />
-    <div>
-      <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4">
+    <Banner />
+    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+      
+      <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
       <div className="w-3/4">
         <FileUpload file={file} setFile={setFile} />
       </div>
@@ -311,11 +314,13 @@ const PriceCalculator = () => {
             </button>
             <button type="submit" className="bg-gray-700 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded">Submit</button>
         </div>
-        <p className="text-red-500 mt-4 min-h-[32px] visibility-hidden">{error}</p>
+        <div className="visibility-hidden min-h-[32px]">
+        <p className="text-red-500 mt-4 visibility-hidden">{error}</p>
         <p className="text-red-500 mt-4 visibility-hidden">{formError}</p>
-        <p className="mt-4 text-right text-xl font-bold visibility-hidden">
+        <p className="text-right text-xl font-bold visibility-hidden">
           {prediction !== null ? `Estimated Price: ${formatPrice(prediction)}` : ""}
         </p>
+        </div>
         </div>
       </form>
     </div>

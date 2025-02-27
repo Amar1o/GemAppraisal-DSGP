@@ -1,6 +1,6 @@
 function Navbar() {
     return (
-        <header class='shadow-md bg-white font-sans tracking-wide relative z-50'>
+        <header class='shadow-md bg-white font-sans tracking-wide z-50 relative'>
       <section
         class='flex items-center lg:justify-center flex-wrap gap-5 relative py-3 sm:px-10 px-4 border-gray-200 border-b lg:min-h-[80px] max-lg:min-h-[60px]'>
         <a href="javascript:void(0)"><img src="/logo.png" alt="logo"
