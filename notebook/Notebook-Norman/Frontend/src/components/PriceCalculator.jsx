@@ -80,13 +80,48 @@ const PriceCalculator = () => {
 
   // Map backend keys to frontend state
   const mapBackendKeysToFrontend = (backendData) => {
-  return {
-    color: backendData["Color"] || "",
-    shape: backendData["Shape"] || "",
-    clarity: backendData["Clarity"] || "",
-    cut: backendData["Cut"] || "",
-    colorIntensity: backendData["Color Intensity"] || "",
+    return {
+      color: backendData["Color"] || "",
+      shape: backendData["Shape"] || "",
+      clarity: backendData["Clarity"] || "",
+      cut: backendData["Cut"] || "",
+      colorIntensity: backendData["Color Intensity"] || "",
     };
+  };
+
+  const getTypeFromColor = (color) => {
+    switch (color.toLowerCase()) {
+      case 'blue':
+        return 'Blue Sapphire';
+      case 'pink':
+        return 'Pink Sapphire';
+      case 'yellow':
+        return 'Yellow Sapphire';
+      case 'red':
+        return 'Ruby';
+      default:
+        return '';  // Return empty string if no match
+    }
+  };
+
+  // Unified handleChange function
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "color") {
+      // If color changes, automatically set the type based on color
+      const updatedType = getTypeFromColor(value);
+      setSelectedValues((prev) => ({
+        ...prev,
+        [name]: value,
+        type: updatedType, // Update type automatically when color changes
+      }));
+    } else {
+      setSelectedValues((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleFileUpload = async () => {
@@ -133,6 +168,12 @@ const PriceCalculator = () => {
           ...prev,
           ...mapBackendKeysToFrontend(response.data),
         }));
+        // Automatically update the type based on color after autofill
+        const updatedType = getTypeFromColor(response.data["Color"]);
+        setSelectedValues((prev) => ({
+          ...prev,
+          type: updatedType,
+        }));
       } else {
         setError("Failed to fetch attributes.");
       }
@@ -141,14 +182,6 @@ const PriceCalculator = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
   };
 
   const validateForm = () => {
