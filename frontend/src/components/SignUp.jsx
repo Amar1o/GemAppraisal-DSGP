@@ -76,13 +76,13 @@ const SignUp = () => {
           </form>
           <p className="mt-10 text-center text-sm/6 text-gray-500">
             Already a member?{' '}
-            <a href="/" className="font-semibold text-cyan-600 hover:text-cyan-500">
+            <a href="/login" className="font-semibold text-cyan-600 hover:text-cyan-500">
               Sign in to your account
             </a>
           </p>
         </div>
         </div>
-        <div className="w-1/2 min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('/login_image.jpg')", clipPath: "polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%)" }}></div>
+        <div className="md:w-1/2 md:min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('/login_image.jpg')", clipPath: "polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%)" }}></div>
         </div>
   );
 };

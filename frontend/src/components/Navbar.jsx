@@ -1,6 +1,6 @@
 function Navbar() {
     return (
-        <header class='shadow-md bg-white font-sans tracking-wide z-50 relative'>
+        <header class='shadow-md bg-white font-[Open Sans] tracking-wide z-50 relative'>
       <section
         class='flex items-center lg:justify-center flex-wrap gap-5 relative py-3 sm:px-10 px-4 border-gray-200 border-b lg:min-h-[80px] max-lg:min-h-[60px]'>
         <a href="javascript:void(0)"><img src="/logo.png" alt="logo"
@@ -30,15 +30,15 @@ function Navbar() {
               </a>
             </li>
             <li class='max-lg:border-b max-lg:py-3'><a href='javascript:void(0)'
-              class='hover:text-gray-700 text-gray-700 font-bold text-[15px] block'>Home</a></li>
+              class='hover:text-gray-700 text-gray-700 font-bold text-l block'>Home</a></li>
             <li class='max-lg:border-b max-lg:py-3'><a href='javascript:void(0)'
-              class='hover:text-gray-700 text-gray-500 font-bold text-[15px] block'>Team</a></li>
+              class='hover:text-gray-700 text-gray-500 font-bold text-l block'>Team</a></li>
             <li class='max-lg:border-b max-lg:py-3'><a href='javascript:void(0)'
-              class='hover:text-gray-700 text-gray-500 font-bold text-[15px] block'>About</a></li>
+              class='hover:text-gray-700 text-gray-500 font-bold text-l block'>About</a></li>
             <li class='max-lg:border-b max-lg:py-3'><a href='javascript:void(0)'
-              class='hover:text-gray-700 text-gray-500 font-bold text-[15px] block'>Contact</a></li>
+              class='hover:text-gray-700 text-gray-500 font-bold text-l block'>Contact</a></li>
             <li class='max-lg:border-b max-lg:py-3'><a href='javascript:void(0)'
-              class='hover:text-gray-700 text-gray-500 font-bold text-[15px] block'>Source</a></li>
+              class='hover:text-gray-700 text-gray-500 font-bold text-l block'>Price Calculator</a></li>
           </ul>
         </div>
 

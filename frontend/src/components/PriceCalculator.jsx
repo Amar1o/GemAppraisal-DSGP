@@ -9,14 +9,14 @@ import Banner from "./Banner.jsx";
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
   return (
-    <div className="form-control w-full">
+    <div className="form-control w-full ">
       <label className="form-control w-full max-w-xs block font-medium text-gray-700">{label}: </label>
       <div className="mt-2">
       <select 
         name={name} 
         value={value}
         onChange={onChange} 
-        className="select shadow rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline w-full"
+        className="select shadow rounded py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline w-full"
       >
         <option value=""></option>
         {Object.entries(options).map(([key, value]) => (
