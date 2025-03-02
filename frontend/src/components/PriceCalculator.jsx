@@ -228,7 +228,7 @@ const PriceCalculator = () => {
     <>
     <Navbar />
     <Banner />
-    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm ">
       
       <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
       <div className="w-3/4">
