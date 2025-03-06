@@ -9,8 +9,6 @@ import joblib
 from PIL import Image
 from rembg import remove
 from skimage.feature import graycomatrix, graycoprops
-from sklearn.preprocessing import normalize, StandardScaler
-from sklearn.decomposition import PCA
 import json
 
 app = Flask(__name__)
@@ -20,7 +18,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})  # Allows all origins
 UPLOAD_FOLDER = "uploads"
 PROCESSED_FOLDER = "processed"
 MODEL_PATH = "models/xgb_price_predict_model.pkl"
-CLASSIFICATION_MODEL_PATH = "models/rf_model.joblib"
+CLASSIFICATION_MODEL_PATH = "models/videoModel.joblib"
 ENCODED_FEATURES_PATH = "encoded_features.json"
 TRAINING_DATA_PATH = "models/updated_encoded.csv"
 
@@ -37,7 +35,7 @@ training_data = pd.read_csv(TRAINING_DATA_PATH)
 target_columns = training_data.columns[1:92].tolist()
 
 
-# ---------------------- Video Processing and Feature Extraction ----------------------
+# ---------------------- Frame Extraction ----------------------
 
 def extract_frames(video_path, output_folder, frames_per_second=5):
     """Extracts frames from a video at a specified frame rate."""
@@ -58,9 +56,10 @@ def extract_frames(video_path, output_folder, frames_per_second=5):
 
     cap.release()
 
+# ---------------------- Preprocess the images----------------------
+
 
 def process_image(image_path, output_folder="processed_images"):
-    """Removes background, crops the image to 720x720, and saves it in a dedicated folder."""
 
     # Ensure the output folder exists
     os.makedirs(output_folder, exist_ok=True)
@@ -68,38 +67,27 @@ def process_image(image_path, output_folder="processed_images"):
     # Open the image
     img = Image.open(image_path)
 
-    # Remove background and convert back to a PIL Image
-    img_no_bg = remove(img)
-    img_no_bg = Image.fromarray(np.array(img_no_bg))  # Convert from NumPy array to PIL Image
-
-    # Convert to RGB mode if it contains an alpha channel
-    if img_no_bg.mode == "RGBA":
-        img_no_bg = img_no_bg.convert("RGB")
-
-    # Get image dimensions
-    width, height = img_no_bg.size
-
-    # Define cropping box (centered at 720x720)
-    left = max(0, (width - 720) // 2)  # Ensure within bounds
-    top = max(0, (height - 720) // 2)
-    right = min(left + 720, width)  # Ensure within bounds
-    bottom = min(top + 720, height)
+    left = 0
+    top = (img.height - 720) / 2
+    right = 720
+    bottom = top + 720
 
     # Crop the image correctly
-    cropped_img = img_no_bg.crop((left, top, right, bottom))
+    cropped_img = img.crop((left, top, right, bottom))
 
-    # Define the path to save the processed image
+    img_no_bg = remove(cropped_img)
+
     processed_image_path = os.path.join(output_folder, os.path.basename(image_path))
+    processed_image_path = processed_image_path.replace(".jpg", ".png").replace(".jpeg", ".png")  # Save as PNG
 
-    # Ensure file is saved in JPEG format (replace PNG/JPEG extensions)
-    processed_image_path = processed_image_path.replace(".png", ".jpg").replace(".jpeg", ".jpg")
+    # Save the processed image with transparency
+    img_no_bg.save(processed_image_path, "PNG")
 
-    # Save the processed image
-    cropped_img.save(processed_image_path, "JPEG")
-
-    print(f"✅ Processed image saved at: {processed_image_path}")
+    print(f" Processed image saved at: {processed_image_path}")
 
     return processed_image_path
+
+# ---------------------- Color feature extraction----------------------
 
 
 def extract_color_features(image_path):
@@ -118,15 +106,6 @@ def extract_color_features(image_path):
     if img_no_bg.shape[-1] == 4:  # If alpha channel exists, remove it
         img_no_bg = cv2.cvtColor(img_no_bg, cv2.COLOR_RGBA2RGB)
 
-    # Compute color features
-    hist_r = cv2.calcHist([img_no_bg], [0], None, [256], [0, 256])
-    hist_g = cv2.calcHist([img_no_bg], [1], None, [256], [0, 256])
-    hist_b = cv2.calcHist([img_no_bg], [2], None, [256], [0, 256])
-
-    hist_r = normalize(hist_r, axis=0, norm='l1').flatten()
-    hist_g = normalize(hist_g, axis=0, norm='l1').flatten()
-    hist_b = normalize(hist_b, axis=0, norm='l1').flatten()
-
     avg_r = np.mean(img_no_bg[:, :, 0])
     avg_g = np.mean(img_no_bg[:, :, 1])
     avg_b = np.mean(img_no_bg[:, :, 2])
@@ -136,13 +115,10 @@ def extract_color_features(image_path):
         "Avg Red": avg_r,
         "Avg Green": avg_g,
         "Avg Blue": avg_b,
-        **{f'R Hist Bin {i}': hist_r[i] for i in range(len(hist_r))},
-        **{f'G Hist Bin {i}': hist_g[i] for i in range(len(hist_g))},
-        **{f'B Hist Bin {i}': hist_b[i] for i in range(len(hist_b))}
     }
 
 
-# Cut Feature Extraction
+# ---------------------- Cut feature extraction----------------------
 def extract_geometric_features(image_path):
     features = {}
     image = cv2.imread(image_path)
@@ -192,6 +168,8 @@ def extract_geometric_features(image_path):
 
     return features
 
+# ---------------------- Clarity feature extraction----------------------
+
 
 def extract_clarity_features(image_path):
     features = {}
@@ -220,6 +198,8 @@ def extract_clarity_features(image_path):
     features['Image'] = os.path.basename(image_path)
 
     return features
+
+# ---------------------- Combining all the 3 features into 1 file----------------------
 
 
 def process_images(input_folder, output_folder):
@@ -251,6 +231,15 @@ def process_images(input_folder, output_folder):
         print(f" Features saved to {output_file}")
     else:
         print(" No features extracted. Check image files or feature extraction functions.")
+
+# ---------------------- Frontend and backend connection----------------------
+
+
+"""
+When a video is uploaded, frames are extracted, the extracted frames are preprocessed and Feature
+extraction will be done for the pre-processed images and combining all the features into a
+single file.
+"""
 
 
 @app.route("/upload_video", methods=["POST"])
@@ -307,45 +296,17 @@ def upload_video():
     feature_output_path = os.path.join(PROCESSED_FOLDER, "feature_extraction", "combined_features.csv")
     os.makedirs(os.path.dirname(feature_output_path), exist_ok=True)
     feature_df.to_csv(feature_output_path, index=False)
-    print(f"✅ Extracted features saved to {feature_output_path}")
+    print(f" Extracted features saved to {feature_output_path}")
 
-    # ---------------------- STEP 1: Apply PCA Transformation ----------------------
+    # ----------------------  Reformat Dataset and Place Combined Columns ----------------------
 
-    # Remove rows with NaN values (if any)
-    data_clean = feature_df.dropna()
-
-    # Drop 'Image' column if exists (since it's non-numeric)
-    if 'Image' in data_clean.columns:
-        features = data_clean.drop(columns=['Image'])
-    else:
-        features = data_clean.copy()
-
-    # Normalize the features (Standardization)
-    scaler = StandardScaler()
-    features_scaled = scaler.fit_transform(features)
-
-    # Apply PCA to retain 30 components
-    pca = PCA(n_components=30)
-    features_pca = pca.fit_transform(features_scaled)
-
-    # Convert PCA results to DataFrame with column names (0 to 29)
-    pca_df = pd.DataFrame(features_pca, columns=[str(i) for i in range(30)])
-
-    # Save PCA results
-    pca_output_path = os.path.join(PROCESSED_FOLDER, "feature_extraction", "pca_results.csv")
-    pca_df.to_csv(pca_output_path, index=False)
-    print(f"PCA results saved at {pca_output_path}")
-
-    # ---------------------- STEP 2: Reformat Dataset and Place PCA Columns ----------------------
-
-    # Reload the original dataset (without PCA transformation)
+    # Reload the original dataset
     data = feature_df.copy()
 
-    # Drop PCA columns if they exist
-    pca_columns = [str(i) for i in range(30)]
-    data = data.drop(columns=pca_columns, errors='ignore')
+    columns = [str(i) for i in range(18)]
+    data = data.drop(columns=columns, errors='ignore')
 
-    # Ensure the column order matches model expectations
+    # column order matches model expectations
     if "CO" in data.columns:
         co_index = data.columns.get_loc("CO")
         data = data.iloc[:, co_index:]
@@ -354,31 +315,28 @@ def upload_video():
 
     # Remove all columns after DR
     if "DR" in data.columns:
-        dr_index = data.columns.get_loc("DR") + 1
+        dr_index = data.columns.get_loc("DF") + 1
         data = data.iloc[:, :dr_index]
 
-    # Ensure at least 92 columns before appending PCA data
+    # Ensure at least 92 columns before appending Combined data
     while len(data.columns) < 92:
         data[f'Placeholder_{len(data.columns)}'] = None
 
-    # Append PCA columns at CO to DR
-    data_final = pd.concat([data, pca_df], axis=1)
+    data_final = pd.concat([data, feature_df], axis=1)
 
     # Save final structured dataset
-    pca_updated_path = os.path.join(PROCESSED_FOLDER, "feature_extraction", "pca_updated.csv")
-    data_final.to_csv(pca_updated_path, index=False)
-    print(f"PCA results moved to columns CO to DR and saved at {pca_updated_path}")
+    updated_path = os.path.join(PROCESSED_FOLDER, "feature_extraction", "fixedCombined.csv")
+    data_final.to_csv(updated_path, index=False)
 
-    # ---------------------- STEP 3: Load and Predict with Trained Model ----------------------
+    # ----------------------  Load and Predict with Trained Model ----------------------
 
     # Load the trained model
     model = joblib.load(CLASSIFICATION_MODEL_PATH)
 
-    # Load the PCA-updated dataset for prediction
-    data = pd.read_csv(pca_updated_path)
+    data = pd.read_csv(updated_path)
 
-    # Select only the 30 PCA features used for training
-    expected_feature_count = 30
+    # only the 18 features used for training are selected
+    expected_feature_count = 18
     data = data.iloc[:, -expected_feature_count:]
 
     # Make predictions using the trained model
@@ -397,7 +355,7 @@ def upload_video():
 
     print(f"Predicted target labels saved to {predicted_csv}")
 
-    # ---------------------- STEP 4: Extract Final Top Targets ----------------------
+    # ----------------------  Extract Final Top Targets ----------------------
 
     # Load the predicted target dataset
     data = pd.read_csv(predicted_csv)
@@ -447,7 +405,7 @@ def predict():
         data = request.form
 
         # Log received form data
-        print("📌 Received form data:", data)
+        print(" Received form data:", data)
 
         # Validate required fields
         required_fields = ['carat', 'cutQuality', 'shape', 'origin', 'color',
@@ -455,12 +413,12 @@ def predict():
         missing_fields = [field for field in required_fields if not data.get(field)]
 
         if missing_fields:
-            print("🚨 Missing fields:", missing_fields)
+            print(" Missing fields:", missing_fields)
             return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
 
         # Load encoded features from JSON file
         if not os.path.exists(ENCODED_FEATURES_PATH):
-            print("🚨 Error: Encoded features file not found.")
+            print(" Error: Encoded features file not found.")
             return jsonify({"error": "Encoded features mapping file not found."}), 500
 
         with open(ENCODED_FEATURES_PATH, "r") as f:
@@ -482,7 +440,7 @@ def predict():
             type_encoded = float(encoded_features["type_mapping"].get(data.get("type"), -1))
 
             # Log encoded values
-            print("📌 Encoded values:", {
+            print(" Encoded values:", {
                 "carat": carat,
                 "cut_quality": cut_quality_encoded,
                 "shape": shape_encoded,
@@ -499,11 +457,11 @@ def predict():
             if -1 in [cut_quality_encoded, shape_encoded, origin_encoded, color_encoded,
                       color_intensity_encoded, clarity_encoded, cut_encoded,
                       treatment_encoded, type_encoded]:
-                print("🚨 Invalid selection in dropdown values.")
+                print(" Invalid selection in dropdown values.")
                 return jsonify({"error": "Invalid selection in dropdown values. Ensure all inputs are correct."}), 400
 
         except ValueError as e:
-            print("🚨 ValueError:", e)
+            print(" ValueError:", e)
             return jsonify({"error": f"Invalid numeric value: {str(e)}"}), 400
 
         # Prepare model input for price prediction
@@ -512,11 +470,11 @@ def predict():
                                  cut_encoded, treatment_encoded, type_encoded]])
 
         # Log model input
-        print("📌 Model input array:", model_input)
+        print(" Model input array:", model_input)
 
         # Ensure price model is loaded
         if price_model is None:
-            print("🚨 Error: Price prediction model not found.")
+            print(" Error: Price prediction model not found.")
             return jsonify({"error": "Price prediction model is not loaded."}), 500
 
         # Make prediction
@@ -524,12 +482,12 @@ def predict():
         predicted_price = np.expm1(predicted_price)  # Convert back from log-transformed price
 
         # Log the final price
-        print("✅ Predicted Price:", predicted_price)
+        print(" Predicted Price:", predicted_price)
 
         return jsonify({"price": round(float(predicted_price), 2)})
 
     except Exception as e:
-        print("🚨 Prediction error:", str(e))
+        print(" Prediction error:", str(e))
         return jsonify({"error": "Internal server error"}), 500
 
 
