@@ -97,6 +97,23 @@ const PriceCalculator = () => {
     "Purple Sapphire": ["Purple", "Pinkish Purple", "Purplish Pink", "Purplish Red", "Bluish Purple", "Violet"],
   };
 
+    //  get Type from Color
+  const getTypeFromColor = (color) => {
+    for (const [type, colors] of Object.entries(typeColorMapping)) {
+      if (colors.includes(color)) {
+        return type;
+      }
+    }
+    return ""; // Return empty string if no match
+  };
+
+  //  get color from tyoe
+  const getColorFromType = (type) => {
+  return typeColorMapping[type] ? typeColorMapping[type][0] : "";
+};
+
+
+
    // Filter color options based on selected type
    const getFilteredColorOptions = () => {
     const selectedType = selectedValues.type;
@@ -120,8 +137,11 @@ const PriceCalculator = () => {
     setSelectedValues((prev) => {
       const newValues = { ...prev, [name]: value };
       // Reset color if type changes
+      if (name === "color") {
+            newValues.type = getTypeFromColor(value);
+      }
       if (name === "type") {
-        newValues.color = ""; // Reset color when type changes
+      newValues.color = getColorFromType(value);
       }
       return newValues;
     });
@@ -150,6 +170,20 @@ const PriceCalculator = () => {
       setError("");
       setPrediction(null);
 
+      if (!file) {
+          setError("No file detected. Please upload a video.");
+          setLoading(false);
+          return;
+      }
+
+      // Check if uploaded file is a video
+      const allowedVideoTypes = ["video/mp4", "video/avi", "video/mov", "video/mkv"];
+      if (!allowedVideoTypes.includes(file.file.type)) {
+          setError("Invalid file type. Please upload a video.");
+          setLoading(false);
+          return;
+      }
+
       const formData = new FormData();
       if (file) formData.append("file", file.file);
 
@@ -176,14 +210,25 @@ const PriceCalculator = () => {
           }
 
           // Auto-fill dropdowns with predicted gemstone attributes
-          setSelectedValues((prev) => ({
+          setSelectedValues((prev) => {
+            const newValues = {
               ...prev,
               color: attributes.Color || "",  
               shape: attributes.Shape || "",  
               cut: attributes.Cut || "",  
               clarity: attributes.Clarity || "",  
               colorIntensity: attributes["Color Intensity"] || "",
-          }));
+            };
+
+            // Ensure Type is updated if Color is detected
+            if (newValues.color) {
+              newValues.type = getTypeFromColor(newValues.color);
+            }
+
+            return newValues;
+          });
+
+        
 
       } catch (err) {
           setError("Error processing the video. Please try again.");
@@ -283,11 +328,20 @@ const PriceCalculator = () => {
     <>
     <Navbar />
     <Banner />
-    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm dark:bg-gray-800 ">
+    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm dark:bg-gray-800 pb-12 ">
       
       <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
       <div className="w-3/4">
         <FileUpload file={file} setFile={setFile} />
+        <div className="mt-8 flex justify-center">
+          <button 
+            type="button" 
+            onClick={handleSubmit} 
+            className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+          >
+            Extract Feature from Video
+          </button>
+        </div>
       </div>
         <div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-10 w-full min-w-[390px] md:min-w-[500px]">
@@ -368,14 +422,18 @@ const PriceCalculator = () => {
         
         </div>
         <div className="flex flex-col md:grid md:grid-cols-2 md:gap-x-10 mt-10 w-full space-y-4 md:space-y-0">
-            {/* Upload & Extract Gemstone Properties */}
-            <button type="button" onClick={handleSubmit} className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-                Upload Video & Extract Features
-            </button>
+          
 
             {/* Predict Price (Only after attributes are filled) */}
-            <button type="button" onClick={handlePricePrediction} className={`bg-gray-700 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
+            <button type="button" onClick={handlePricePrediction} className={`bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
                 Predict Price
+            </button>
+            <button 
+              type="button" 
+              onClick={handleClear} 
+              className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded"
+            >
+              Reset
             </button>
         </div>
         {loading && (
