@@ -34,11 +34,12 @@ target_columns = training_data.columns[1:92].tolist()
 
 # ---------------------- Frame Extraction ----------------------
 
-def extract_frames(video_path, output_folder, frames_per_second=5):
-    """Extracts frames from a video at a specified frame rate."""
+def extract_frames(video_path, output_folder):
+
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
-    frame_interval = int(fps / frames_per_second) if fps > 0 else 1
+    frames_per_second = 2
+    frame_interval = int(fps / frames_per_second) if fps > 0 else 1  # Compute interval
 
     frame_count = 0
     success, frame = cap.read()
