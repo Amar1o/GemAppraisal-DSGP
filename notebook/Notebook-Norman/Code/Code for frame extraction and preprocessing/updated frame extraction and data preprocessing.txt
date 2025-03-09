@@ -1,0 +1,87 @@
+import os
+import cv2
+from PIL import Image
+from rembg import remove
+
+# Define the main directory path
+main_dir = r"C:\Users\Muralish\Desktop\Blue Sapphires"
+# Frames per second to extract
+frames_per_second = 5
+
+# Define the pages to process (page2 to page34)
+for page_num in range(2, 35):
+    page_folder = f"page{page_num}"
+    page_folder_path = os.path.join(main_dir, page_folder)
+
+    # Check if it's a directory
+    if os.path.isdir(page_folder_path):
+        # Loop through each ID subfolder inside the page folder
+        for id_folder in os.listdir(page_folder_path):
+            id_folder_path = os.path.join(page_folder_path, id_folder)
+
+            if os.path.isdir(id_folder_path):
+                # Loop through each video file in the ID folder
+                for video_file in os.listdir(id_folder_path):
+                    if video_file.endswith(".mp4"):  # Check if it's an mp4 file
+                        video_path = os.path.join(id_folder_path, video_file)
+
+                        # Create a folder to store frames for this specific video
+                        video_name = os.path.splitext(video_file)[0]
+                        frames_folder = os.path.join(id_folder_path, video_name)
+                        cleaned_video_folder = os.path.join(id_folder_path, "cleaned", video_name)
+
+                        # Skip processing if the cleaned folder for this video already exists
+                        if os.path.exists(cleaned_video_folder):
+                            print(f"Skipping video {video_file} as it's already processed.")
+                            continue
+
+                        # Extract frames if not already done
+                        if not os.path.exists(frames_folder):
+                            os.makedirs(frames_folder, exist_ok=True)
+                            # Open the video file for frame extraction
+                            cap = cv2.VideoCapture(video_path)
+                            fps = cap.get(cv2.CAP_PROP_FPS)
+                            frame_interval = int(fps / frames_per_second)
+
+                            frame_count = 0
+                            success, frame = cap.read()
+                            while success:
+                                if frame_count % frame_interval == 0:
+                                    # Save the frame as an image file in the frames folder
+                                    frame_file = os.path.join(frames_folder, f"frame_{frame_count}.jpg")
+                                    cv2.imwrite(frame_file, frame)
+                                    print(f"Extracted frame: {frame_file}")
+
+                                # Read the next frame
+                                success, frame = cap.read()
+                                frame_count += 1
+
+                            cap.release()
+
+                        # Process each frame in the frames folder
+                        os.makedirs(cleaned_video_folder, exist_ok=True)
+                        for frame_file in os.listdir(frames_folder):
+                            if frame_file.endswith(".jpg"):
+                                frame_path = os.path.join(frames_folder, frame_file)
+
+                                # Open the image
+                                img = Image.open(frame_path)
+
+                                # Crop the image to 720x720 from the center
+                                left = 0
+                                top = (img.height - 720) / 2  # Center the crop vertically
+                                right = 720
+                                bottom = top + 720  # Ensure it is 720 pixels tall
+
+                                # Crop the image
+                                cropped_img = img.crop((left, top, right, bottom))
+
+                                # Remove background using rembg
+                                final_image = remove(cropped_img)
+
+                                # Save the processed frame to the cleaned folder
+                                cleaned_frame_path = os.path.join(
+                                    cleaned_video_folder, frame_file.replace(".jpg", "_cleaned.png")
+                                )
+                                final_image.save(cleaned_frame_path)
+                                print(f"Processed frame saved: {cleaned_frame_path}")
