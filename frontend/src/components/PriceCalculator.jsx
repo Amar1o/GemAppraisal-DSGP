@@ -9,7 +9,7 @@ import Banner from "./Banner.jsx";
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
   return (
-    <div className="form-control w-full ">
+    <div className="form-control w-full">
       <label className="form-control w-full max-w-xs block font-medium text-gray-700">{label}: </label>
       <div className="mt-2">
       <select 
