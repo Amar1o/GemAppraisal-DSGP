@@ -4,12 +4,7 @@ module.exports = {
   "./src/**/*.{js,jsx,ts,tsx}" // Include all JSX, TSX, JS, and TS files in the src directory
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        alegreya: ["Alegreya", "serif"],
-        satisfy: ["Satisfy", "cursive"],
-      },
-    }
+    extend: {}
   },
   plugins: [require("daisyui")],
   daisyui: {

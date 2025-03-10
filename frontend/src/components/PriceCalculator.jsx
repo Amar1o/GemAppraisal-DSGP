@@ -97,6 +97,23 @@ const PriceCalculator = () => {
     "Purple Sapphire": ["Purple", "Pinkish Purple", "Purplish Pink", "Purplish Red", "Bluish Purple", "Violet"],
   };
 
+    //  get Type from Color
+  const getTypeFromColor = (color) => {
+    for (const [type, colors] of Object.entries(typeColorMapping)) {
+      if (colors.includes(color)) {
+        return type;
+      }
+    }
+    return ""; // Return empty string if no match
+  };
+
+  //  get color from tyoe
+  const getColorFromType = (type) => {
+  return typeColorMapping[type] ? typeColorMapping[type][0] : "";
+};
+
+
+
    // Filter color options based on selected type
    const getFilteredColorOptions = () => {
     const selectedType = selectedValues.type;
@@ -120,8 +137,11 @@ const PriceCalculator = () => {
     setSelectedValues((prev) => {
       const newValues = { ...prev, [name]: value };
       // Reset color if type changes
+      if (name === "color") {
+            newValues.type = getTypeFromColor(value);
+      }
       if (name === "type") {
-        newValues.color = ""; // Reset color when type changes
+      newValues.color = getColorFromType(value);
       }
       return newValues;
     });
@@ -145,46 +165,125 @@ const PriceCalculator = () => {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    if (!validateForm()) {
-      setError("Please fill in all required fields and ensure carat value is greater than 0.");
-      setLoading(false);
-      return; // Stop further submission if validation fails
-    }
-    const formData = new FormData();
-  
-    try {
-      // Append all selected values to FormData
-      Object.entries(selectedValues).forEach(([key, value]) => {
-        if (value) {
-          formData.append(key, value);
-        }
-      });
-  
-      // Append file if exists
-      if (file) {
-        formData.append("file", file.file);
+      e.preventDefault();
+      setLoading(true);
+      setError("");
+      setPrediction(null);
+
+      if (!file) {
+          setError("No file detected. Please upload a video.");
+          setLoading(false);
+          return;
       }
-  
-      const response = await axios.post("http://127.0.0.1:5000/predict", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data", // Let axios set this automatically
-        },
-      });
-  
-      setPrediction(response.data.price);
-    } catch (err) {
-      setError("Error predicting price. Please try again.");
-      console.error("Prediction Error:", err.message);
-      if (err.response) {
-        console.error("Server Response:", err.response.data);
+
+      // Check if uploaded file is a video
+      const allowedVideoTypes = ["video/mp4", "video/avi", "video/mov", "video/mkv"];
+      if (!allowedVideoTypes.includes(file.file.type)) {
+          setError("Invalid file type. Please upload a video.");
+          setLoading(false);
+          return;
       }
-    } finally {
-      setLoading(false);
-    }
+
+      const formData = new FormData();
+      if (file) formData.append("file", file.file);
+
+      try {
+          // Send video file to backend
+          const response = await axios.post("http://127.0.0.1:5000/video/upload_video", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          if (response.data.error) {
+              setError(response.data.error);
+              return;
+          }
+
+          // Log received attributes
+          console.log("Extracted attributes from backend:", response.data.predicted_attributes);
+
+          // Get the gemstone properties predicted by backend
+          const attributes = response.data.predicted_attributes;
+
+          if (!attributes) {
+              setError("Failed to extract attributes from video.");
+              return;
+          }
+
+          // Auto-fill dropdowns with predicted gemstone attributes
+          setSelectedValues((prev) => {
+            const newValues = {
+              ...prev,
+              color: attributes.Color || "",  
+              shape: attributes.Shape || "",  
+              cut: attributes.Cut || "",  
+              clarity: attributes.Clarity || "",  
+              colorIntensity: attributes["Color Intensity"] || "",
+            };
+
+            // Ensure Type is updated if Color is detected
+            if (newValues.color) {
+              newValues.type = getTypeFromColor(newValues.color);
+            }
+
+            return newValues;
+          });
+
+        
+
+      } catch (err) {
+          setError("Error processing the video. Please try again.");
+          console.error("Prediction Error:", err.message);
+      } finally {
+          setLoading(false);
+      }
   };
+
+
+
+  const handlePricePrediction = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      setError("");
+
+      console.log("Submitting data for price prediction:", selectedValues);
+
+      if (!validateForm()) {
+          setError("Please ensure all required fields are filled.");
+          setLoading(false);
+          return;
+      }
+
+      try {
+          const formData = new FormData();
+          Object.entries(selectedValues).forEach(([key, value]) => {
+              if (value) formData.append(key, value);
+          });
+
+          // Send filled form data for price prediction
+          const response = await axios.post("http://127.0.0.1:5000/predict", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          console.log("Received response:", response.data);
+
+          if (response.data.error) {
+              setError(`Error: ${response.data.error}`);
+          } else {
+              setPrediction(response.data.price);
+          }
+
+      } catch (err) {
+          console.error("Prediction Error:", err.response ? err.response.data : err.message);
+          setError(`Error predicting price: ${err.response ? err.response.data.error : err.message}`);
+      } finally {
+          setLoading(false);
+      }
+  };
+
+
+
+
+
   
  // Handle form clear
   const handleClear = (e) => {
@@ -206,6 +305,7 @@ const PriceCalculator = () => {
     setError("");
     setPrediction(null);
   };
+  
 
   // Function to format price
   const formatPrice = (price) => {
@@ -228,11 +328,20 @@ const PriceCalculator = () => {
     <>
     <Navbar />
     <Banner />
-    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm ">
+    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm dark:bg-gray-800 pb-12 ">
       
       <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
       <div className="w-3/4">
         <FileUpload file={file} setFile={setFile} />
+        <div className="mt-8 flex justify-center">
+          <button 
+            type="button" 
+            onClick={handleSubmit} 
+            className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+          >
+            Extract Feature from Video
+          </button>
+        </div>
       </div>
         <div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-10 w-full min-w-[390px] md:min-w-[500px]">
@@ -313,11 +422,27 @@ const PriceCalculator = () => {
         
         </div>
         <div className="flex flex-col md:grid md:grid-cols-2 md:gap-x-10 mt-10 w-full space-y-4 md:space-y-0">
-            <button type="button" onClick={handleClear} className="bg-transparent text-gray-700 font-semibold hover:text-gray-500 py-2 px-4 border border-gray-700 hover:border-gray-500 rounded">
-              Clear
+          
+
+            {/* Predict Price (Only after attributes are filled) */}
+            <button type="button" onClick={handlePricePrediction} className={`bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
+                Predict Price
             </button>
-            <button type="submit" className="bg-gray-700 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded">Submit</button>
+            <button 
+              type="button" 
+              onClick={handleClear} 
+              className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded"
+            >
+              Reset
+            </button>
         </div>
+        {loading && (
+            <p className="text-gray-600 font-semibold text-center mt-4">
+                Processing... Please wait.
+            </p>
+        )}
+
+
         <div className="visibility-hidden min-h-[32px]">
         <p className="text-red-500 mt-4 visibility-hidden">{error}</p>
         <p className="text-red-500 mt-4 visibility-hidden">{formError}</p>
