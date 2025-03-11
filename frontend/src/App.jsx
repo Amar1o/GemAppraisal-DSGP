@@ -4,6 +4,7 @@ import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Home from './components/Home';
 import PriceCalculator from './components/PriceCalculator';
+import ProtectedRoute from './ProtectedRoute';
 
 const App = () => {
   return (
@@ -13,7 +14,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/price-calculator" element={<PriceCalculator />} />
+        <Route path="/price-calculator" element={<ProtectedRoute><PriceCalculator /></ProtectedRoute>} /> 
       </Routes>
     </Router>
   );
