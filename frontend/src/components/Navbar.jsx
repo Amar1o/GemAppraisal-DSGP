@@ -17,7 +17,7 @@ function Navbar() {
     // Logout function
     const handleLogout = async () => {
       await supabase.auth.signOut();
-      navigate("/login");
+      navigate("/");
     };
     
 

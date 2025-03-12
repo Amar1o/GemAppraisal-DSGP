@@ -3,6 +3,9 @@ import os
 import numpy as np
 import joblib
 import json
+import psycopg2
+from datetime import datetime
+from supabase_client import supabase
 
 # Blueprint for prediction routes
 prediction_routes = Blueprint("prediction_routes", __name__)
@@ -19,6 +22,11 @@ price_model = joblib.load(MODEL_PATH)
 def predict():
     try:
         data = request.form
+        user_id = data.get("user_id")  # Ensure user ID is sent from the frontend
+        media_url = data.get("media_url", None)  # Optional media URL
+
+        if not user_id:
+            return jsonify({"error": "User ID is required"}), 400
 
         # Log received form data
         print(" Received form data:", data)
@@ -96,6 +104,46 @@ def predict():
         # Make prediction
         predicted_price = price_model.predict(model_input)[0]
         predicted_price = np.expm1(predicted_price)  # Convert back from log-transformed price
+
+        # Save appraisal to Supabase
+        new_appraisal = {
+            "user_id": user_id,
+            "gem_species": data.get("type"),
+            "shape": data.get("shape"),
+            "color": data.get("color"),
+            "color_intensity": data.get("colorIntensity"),
+            "cut": data.get("cut"),
+            "cut_quality": data.get("cutQuality"),
+            "carat": carat,
+            "origin": data.get("origin"),
+            "treatment": data.get("treatment"),
+            "estimated_price": round(float(predicted_price), 2),
+            "gem_species_accuracy": 0.5,  # Placeholder for now
+            "created_at": datetime.now().isoformat(),
+            "media_url": media_url
+        }
+
+        # Check for existing appraisal
+        existing_appraisal = (
+            supabase.table("appraisals")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("gem_species", data.get("type"))
+            .eq("shape", data.get("shape"))
+            .eq("color", data.get("color"))
+            .eq("color_intensity", data.get("colorIntensity"))
+            .eq("cut", data.get("cut"))
+            .eq("cut_quality", data.get("cutQuality"))
+            .eq("carat", carat)
+            .eq("origin", data.get("origin"))
+            .eq("treatment", data.get("treatment"))
+            .execute()
+        )
+        if existing_appraisal.data:
+            print("Duplicate entry found, returning existing appraisal.")
+            return jsonify({"price": round(float(predicted_price), 2)})
+
+        response = supabase.table("appraisals").insert(new_appraisal).execute()
 
         # Log the final price
         print(" Predicted Price:", predicted_price)

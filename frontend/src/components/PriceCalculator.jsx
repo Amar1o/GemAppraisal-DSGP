@@ -5,6 +5,8 @@ import Footer from "./Footer.jsx";
 import Navbar from "./Navbar.jsx";
 import Disclaimer from "./Disclaimer.jsx";
 import Banner from "./Banner.jsx";
+import { useAuth } from "./AuthContext";
+
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
@@ -56,7 +58,7 @@ const PriceCalculator = () => {
   const [file, setFile] = useState(null);
   const [resetFile, setResetFile] = useState(false); // Track if file needs to be reset
   const [formError, setFormError] = useState("");
-
+  const { user } = useAuth();
   const [selectedValues, setSelectedValues] = useState({
     carat: "",
     cutQuality: "",
@@ -258,6 +260,7 @@ const PriceCalculator = () => {
           Object.entries(selectedValues).forEach(([key, value]) => {
               if (value) formData.append(key, value);
           });
+          formData.append("user_id", user.id); 
 
           // Send filled form data for price prediction
           const response = await axios.post("http://127.0.0.1:5000/predict", formData, {
