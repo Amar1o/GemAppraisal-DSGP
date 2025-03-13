@@ -15,7 +15,7 @@ const Login = () => {
     if (error) {
       setError(error.message);
     } else {
-      setSuccess('Login successful!');
+      setSuccess('');
       setError('');
       setTimeout(() => {
         navigate('/price-calculator');  // Redirect user to dashboard
@@ -37,8 +37,7 @@ const Login = () => {
         </h2>
         </div>
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          {error && <div className="alert alert-error">{error}</div>}
-          {success && <div className="alert alert-success">{success}</div>}
+          
           <form onSubmit={handleLogin} className="space-y-6">
           <div>
               <label htmlFor="email" className="block text-sm/6 font-medium text-gray-700">
@@ -86,6 +85,8 @@ const Login = () => {
                 >
                 Sign in
               </button>
+              {error && <div className="alert alert-error p-5 ">{error}</div>}
+              {success && <div className="alert alert-success">{success}</div>}
             </div>
           </form>
           <p className="mt-10 text-center text-sm/6 text-gray-500">

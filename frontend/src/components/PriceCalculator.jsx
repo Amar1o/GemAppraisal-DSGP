@@ -18,7 +18,7 @@ function Dropdown({ label, name, options, value, onChange }) {
         name={name} 
         value={value}
         onChange={onChange} 
-        className="select shadow rounded py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline w-full"
+        className="select shadow rounded-xl py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline w-full"
       >
         <option value=""></option>
         {Object.entries(options).map(([key, value]) => (
@@ -165,7 +165,7 @@ const PriceCalculator = () => {
   };
 
 
-  // Handle form submission
+  // Handle video submission
   const handleSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
