@@ -5,11 +5,13 @@ import Footer from "./Footer.jsx";
 import Navbar from "./Navbar.jsx";
 import Disclaimer from "./Disclaimer.jsx";
 import Banner from "./Banner.jsx";
+import { useAuth } from "./AuthContext";
+import jsonData from "./encoded_features.json";
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
   return (
-    <div className="form-control w-full ">
+    <div className="form-control w-full">
       <label className="form-control w-full max-w-xs block font-medium text-gray-700">{label}: </label>
       <div className="mt-2">
       <select 
@@ -49,14 +51,13 @@ function InputText({ label, name, value, onChange }) {
 }
 
 const PriceCalculator = () => {
-  const [jsonData, setJsonData] = useState(null);
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [file, setFile] = useState(null);
   const [resetFile, setResetFile] = useState(false); // Track if file needs to be reset
   const [formError, setFormError] = useState("");
-
+  const { user } = useAuth();
   const [selectedValues, setSelectedValues] = useState({
     carat: "",
     cutQuality: "",
@@ -70,19 +71,7 @@ const PriceCalculator = () => {
     type: "",
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("/encoded_features.json");
-        if (!response.ok) throw new Error('Failed to load config');
-        setJsonData(await response.json());
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-        setError("Failed to load application configuration");
-      }
-    };
-    fetchData();
-  }, []);
+
 
 
   // Define allowed color options for each type
@@ -96,6 +85,23 @@ const PriceCalculator = () => {
     "Yellow Sapphire": ["Yellow", "Greenish Yellow", "Yellowish Brown", "Yellowish Orange", "Orangish Yellow", "Yellowish Green"],
     "Purple Sapphire": ["Purple", "Pinkish Purple", "Purplish Pink", "Purplish Red", "Bluish Purple", "Violet"],
   };
+
+    //  get Type from Color
+  const getTypeFromColor = (color) => {
+    for (const [type, colors] of Object.entries(typeColorMapping)) {
+      if (colors.includes(color)) {
+        return type;
+      }
+    }
+    return ""; // Return empty string if no match
+  };
+
+  //  get color from tyoe
+  const getColorFromType = (type) => {
+  return typeColorMapping[type] ? typeColorMapping[type][0] : "";
+};
+
+
 
    // Filter color options based on selected type
    const getFilteredColorOptions = () => {
@@ -120,8 +126,11 @@ const PriceCalculator = () => {
     setSelectedValues((prev) => {
       const newValues = { ...prev, [name]: value };
       // Reset color if type changes
+      if (name === "color") {
+            newValues.type = getTypeFromColor(value);
+      }
       if (name === "type") {
-        newValues.color = ""; // Reset color when type changes
+      newValues.color = getColorFromType(value);
       }
       return newValues;
     });
@@ -194,48 +203,273 @@ const classify = async (e) => {
 
 
 
-  // Handle form submission
+  // Handle video submission
   const handleSubmit = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      setError("");
+      setPrediction(null);
+
+      if (!file) {
+          setError("No file detected. Please upload a video.");
+          setLoading(false);
+          return;
+      }
+
+      // Check if uploaded file is a video
+      const allowedVideoTypes = ["video/mp4", "video/avi", "video/mov", "video/mkv"];
+      if (!allowedVideoTypes.includes(file.file.type)) {
+          setError("Invalid file type. Please upload a video.");
+          setLoading(false);
+          return;
+      }
+
+      const formData = new FormData();
+      if (file) formData.append("file", file.file);
+
+      try {
+          // Send video file to backend
+          const response = await axios.post("http://127.0.0.1:5000/video/upload_video", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          if (response.data.error) {
+              setError(response.data.error);
+              return;
+          }
+
+          // Log received attributes
+          console.log("Extracted attributes from backend:", response.data.predicted_attributes);
+
+          // Get the gemstone properties predicted by backend
+          const attributes = response.data.predicted_attributes;
+
+          if (!attributes) {
+              setError("Failed to extract attributes from video.");
+              return;
+          }
+
+          // Auto-fill dropdowns with predicted gemstone attributes
+          setSelectedValues((prev) => {
+            const newValues = {
+              ...prev,
+              color: attributes.Color || "",  
+              shape: attributes.Shape || "",  
+              cut: attributes.Cut || "",  
+              clarity: attributes.Clarity || "",  
+              colorIntensity: attributes["Color Intensity"] || "",
+            };
+
+            // Ensure Type is updated if Color is detected
+            if (newValues.color) {
+              newValues.type = getTypeFromColor(newValues.color);
+            }
+
+            return newValues;
+          });
+
+        
+
+      } catch (err) {
+          setError("Error processing the video. Please try again.");
+          console.error("Prediction Error:", err.message);
+      } finally {
+          setLoading(false);
+      }
+  };
+  
+
+  // //Handle picture submission
+  // const handleImageSubmit  = async (e) => {
+  //     e.preventDefault();
+  //     setLoading(true);
+  //     setError("");
+  //     setPrediction(null);
+
+  //     if (!file) {
+  //       setError("No file detected. Please upload an image.");
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     const allowedImageTypes = ["image/jpeg", "image/png", "image/jpg"];
+  //     if (!allowedImageTypes.includes(file.file.type)) {
+  //       setError("Invalid file type. Please upload an image (JPEG, PNG, JPG).");
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     const formData = new FormData();
+  //     if (file) formData.append("file", file.file);
+
+  //     try {
+  //       const response = await axios.post("http://127.0.0.1:5000/picture/upload_image", formData, {
+  //         headers: { "Content-Type": "multipart/form-data" },
+  //       });
+
+  //       if (response.data.error) {
+  //         setError(response.data.error);
+  //         return;
+  //       }
+
+  //       const attributes = response.data.predicted_attributes;
+
+  //       if (!attributes) {
+  //         setError("Failed to extract attributes from image.");
+  //         return;
+  //       }
+
+  //       setSelectedValues((prev) => ({
+  //         ...prev,
+  //         clarity: attributes.clarity || "",
+  //         cut: attributes.cut || "",
+  //         shape: attributes.shape || "",
+  //       }));
+
+  //     } catch (err) {
+  //       setError("Error processing the image. Please try again.");
+  //       console.error("Prediction Error:", err.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  // };
+   
+  const handleImageSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    if (!validateForm()) {
-      setError("Please fill in all required fields and ensure carat value is greater than 0.");
+    setPrediction(null);
+    
+    if (!file) {
+      setError("No file detected. Please upload an image.");
       setLoading(false);
-      return; // Stop further submission if validation fails
+      return;
     }
+  
+    const allowedImageTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!allowedImageTypes.includes(file.file.type)) {
+      setError("Invalid file type. Please upload an image (JPEG, PNG, JPG).");
+      setLoading(false);
+      return;
+    }
+  
+    // Create a FormData object for uploading the image
     const formData = new FormData();
+    formData.append("file", file.file);
   
     try {
-      // Append all selected values to FormData
-      Object.entries(selectedValues).forEach(([key, value]) => {
-        if (value) {
-          formData.append(key, value);
-        }
+      // First, send the file for classification (Classify pipeline)
+      const classifyResponse = await axios.post("http://127.0.0.1:5000/image/classify", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
   
-      // Append file if exists
-      if (file) {
-        formData.append("file", file.file);
+      console.log("Classify Server Response:", classifyResponse.data);
+  
+      if (classifyResponse.data.error) {
+        console.error("Backend Error:", classifyResponse.data.error);
+        setError(classifyResponse.data.error);
+        setLoading(false);
+        return;
       }
   
-      const response = await axios.post("http://127.0.0.1:5000/predict", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data", // Let axios set this automatically
-        },
+      const { predicted_class, probabilities, attributes } = classifyResponse.data;
+  
+      // Update the selected values with predicted class and attributes
+      setSelectedValues((prev) => ({
+        ...prev,
+        color: attributes?.color || "",
+      }));
+  
+      setPrediction({ predicted_class, probabilities });
+  
+      // Then, get more information about the image (Upload Image pipeline)
+      const uploadImageResponse = await axios.post("http://127.0.0.1:5000/picture/upload_image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
   
-      setPrediction(response.data.price);
+      if (uploadImageResponse.data.error) {
+        setError(uploadImageResponse.data.error);
+        setLoading(false);
+        return;
+      }
+  
+      const imageAttributes = uploadImageResponse.data.predicted_attributes;
+  
+      if (!imageAttributes) {
+        setError("Failed to extract attributes from image.");
+        setLoading(false);
+        return;
+      }
+  
+      // Update the selected values with additional attributes (clarity, cut, shape)
+      setSelectedValues((prev) => ({
+        ...prev,
+        clarity: imageAttributes.clarity || "",
+        cut: imageAttributes.cut || "",
+        shape: imageAttributes.shape || "",
+      }));
+  
     } catch (err) {
-      setError("Error predicting price. Please try again.");
-      console.error("Prediction Error:", err.message);
-      if (err.response) {
-        console.error("Server Response:", err.response.data);
-      }
+      console.error("Error during classification or image upload:", err.message);
+      setError("Error processing the classification or image upload. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+  
+  
+
+
+
+
+
+
+  // PRICE PREDICT FUNCTION HANDLE SUMBIT
+  const handlePricePrediction = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      setError("");
+
+      console.log("Submitting data for price prediction:", selectedValues);
+
+      if (!validateForm()) {
+          setError("Please ensure all required fields are filled.");
+          setLoading(false);
+          return;
+      }
+
+      try {
+          const formData = new FormData();
+          Object.entries(selectedValues).forEach(([key, value]) => {
+              if (value) formData.append(key, value);
+          });
+          formData.append("user_id", user.id); 
+
+          // Send filled form data for price prediction
+          const response = await axios.post("http://127.0.0.1:5000/predict", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          console.log("Received response:", response.data);
+
+          if (response.data.error) {
+              setError(`Error: ${response.data.error}`);
+          } else {
+              setPrediction(response.data.price);
+          }
+
+      } catch (err) {
+          console.error("Prediction Error:", err.response ? err.response.data : err.message);
+          setError(`Error predicting price: ${err.response ? err.response.data.error : err.message}`);
+      } finally {
+          setLoading(false);
+      }
+  };
+
+
+
+
+
   
  // Handle form clear
   const handleClear = (e) => {
@@ -257,6 +491,7 @@ const classify = async (e) => {
     setError("");
     setPrediction(null);
   };
+  
 
   // Function to format price
   const formatPrice = (price) => {
@@ -271,19 +506,28 @@ const classify = async (e) => {
     }).format(price);
   };
 
-  if (!jsonData) {
-    return <p>Loading...</p>;
-  }
   
   return (
     <>
     <Navbar />
     <Banner />
-    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border border-gray-200 shadow-xl  pb-12 ">
       
-      <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
+      <form onSubmit={handleSubmit} className="w-full max-w-5xl z-60 mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
       <div className="w-3/4">
         <FileUpload file={file} setFile={setFile} />
+        <div className="mt-8 flex justify-center flex-col md:grid md:grid-cols-2 md:gap-x-10  w-full space-y-4 md:space-y-0">
+        <button 
+            type="button" 
+            onClick={handleImageSubmit} 
+            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
+          >Extract Feature from Image</button>
+          <button 
+            type="button" 
+            onClick={handleSubmit} 
+            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
+          >Extract Feature from Video</button>
+        </div>
       </div>
         <div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-10 w-full min-w-[390px] md:min-w-[500px]">
@@ -364,14 +608,28 @@ const classify = async (e) => {
         
         </div>
         <div className="flex flex-col md:grid md:grid-cols-2 md:gap-x-10 mt-10 w-full space-y-4 md:space-y-0">
-            <button type="button" onClick={handleClear} className="bg-transparent text-gray-700 font-semibold hover:text-gray-500 py-2 px-4 border border-gray-700 hover:border-gray-500 rounded">
-              Clear
+          
+
+            {/* Predict Price (Only after attributes are filled) */}
+            
+            <button 
+              type="button" 
+              onClick={handleClear} 
+              className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded"
+            >
+              Reset
             </button>
-            <button type="button" onClick={classify} className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-                Classify
+            <button type="button" onClick={handlePricePrediction} className={`bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
+                Predict Price
             </button>
-            <button type="submit" className="bg-gray-700 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded">Submit</button>
         </div>
+        {loading && (
+            <p className="text-gray-600 font-semibold text-center mt-4">
+                Processing... Please wait.
+            </p>
+        )}
+
+
         <div className="visibility-hidden min-h-[32px]">
         <p className="text-red-500 mt-4 visibility-hidden">{error}</p>
         <p className="text-red-500 mt-4 visibility-hidden">{formError}</p>
