@@ -151,6 +151,58 @@ const PriceCalculator = () => {
     return true; // All fields are filled
   };
 
+  const classify = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setPrediction(null);
+  
+    if (!file) {
+        setError("Please select a file before classifying.");
+        setLoading(false);
+        return;
+    }
+  
+    const formData = new FormData();
+    formData.append("file", file.file);
+  
+    // Debugging log
+    console.log("Uploading file:", file.file);
+  
+    try {
+        const response = await axios.post("http://127.0.0.1:5000/classify", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+  
+        console.log("Server Response:", response.data);
+  
+        if (response.data.error) {
+            console.error("Backend Error:", response.data.error);
+            setError(response.data.error);
+            setLoading(false);
+            return;
+        }
+  
+        const { predicted_class, probabilities, attributes } = response.data;
+  
+        setSelectedValues((prev) => ({
+            ...prev,
+            color: attributes?.color || "",
+        }));
+  
+        setPrediction({ predicted_class, probabilities });
+  
+    } catch (err) {
+        console.error("Prediction Error:", err.response ? err.response.data : err.message);
+        setError("Error processing the classification. Please try again.");
+    } finally {
+        setLoading(false);
+    }
+  };
+  
+  
+  
+
 
   // Handle video submission
   const handleSubmit = async (e) => {
@@ -282,7 +334,88 @@ const PriceCalculator = () => {
         setLoading(false);
       }
   };
-   
+  const handleImageSubmit2 = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setPrediction(null);
+    
+    if (!file) {
+      setError("No file detected. Please upload an image.");
+      setLoading(false);
+      return;
+    }
+  
+    const allowedImageTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!allowedImageTypes.includes(file.file.type)) {
+      setError("Invalid file type. Please upload an image (JPEG, PNG, JPG).");
+      setLoading(false);
+      return;
+    }
+  
+    // Create a FormData object for uploading the image
+    const formData = new FormData();
+    formData.append("file", file.file);
+  
+    try {
+      // First, send the file for classification (Classify pipeline)
+      const classifyResponse = await axios.post("http://127.0.0.1:5000/image/classify", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
+      console.log("Classify Server Response:", classifyResponse.data);
+  
+      if (classifyResponse.data.error) {
+        console.error("Backend Error:", classifyResponse.data.error);
+        setError(classifyResponse.data.error);
+        setLoading(false);
+        return;
+      }
+  
+      const { predicted_class, probabilities, attributes } = classifyResponse.data;
+  
+      // Update the selected values with predicted class and attributes
+      setSelectedValues((prev) => ({
+        ...prev,
+        color: attributes?.color || "",
+      }));
+  
+      // use something else to display probability setPrediction({ predicted_class, probabilities });
+  
+      // Then, get more information about the image (Upload Image pipeline)
+      const uploadImageResponse = await axios.post("http://127.0.0.1:5000/picture/upload_image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
+      if (uploadImageResponse.data.error) {
+        setError(uploadImageResponse.data.error);
+        setLoading(false);
+        return;
+      }
+  
+      const imageAttributes = uploadImageResponse.data.predicted_attributes;
+  
+      if (!imageAttributes) {
+        setError("Failed to extract attributes from image.");
+        setLoading(false);
+        return;
+      }
+  
+      // Update the selected values with additional attributes (clarity, cut, shape)
+      setSelectedValues((prev) => ({
+        ...prev,
+        clarity: imageAttributes.clarity || "",
+        cut: imageAttributes.cut || "",
+        shape: imageAttributes.shape || "",
+      }));
+  
+    } catch (err) {
+      console.error("Error during classification or image upload:", err.message);
+      setError("Error processing the classification or image upload. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   
 
 
@@ -385,7 +518,7 @@ const PriceCalculator = () => {
         <div className="mt-8 flex justify-center flex-col md:grid md:grid-cols-2 md:gap-x-10  w-full space-y-4 md:space-y-0">
         <button 
             type="button" 
-            onClick={handleImageSubmit} 
+            onClick={handleImageSubmit2} 
             className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
           >Extract Feature from Image</button>
           <button 
