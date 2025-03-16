@@ -1,0 +1,75 @@
+import pandas as pd
+import numpy as np
+
+def aggregate_histogram_features(df, prefix, bins=256, new_bins=64):
+    """
+    Aggregates histogram bins into a smaller number of bins by averaging groups of bins.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing histogram features.
+        prefix (str): Prefix for the histogram column names (e.g., 'R', 'G', 'B').
+        bins (int): Total number of bins in the original histogram.
+        new_bins (int): Desired number of aggregated bins.
+
+    Returns:
+        pd.DataFrame: Updated DataFrame with aggregated bins.
+    """
+    # Get the histogram column names
+    bin_columns = [f"{prefix} Hist Bin {i}" for i in range(bins)]
+
+    # Ensure the columns exist
+    existing_columns = [col for col in bin_columns if col in df.columns]
+
+    # Split columns into groups for aggregation
+    grouped_columns = np.array_split(existing_columns, new_bins)
+
+    # Aggregate by averaging within each group
+    for idx, group in enumerate(grouped_columns):
+        df[f"{prefix} Hist Bin Agg {idx}"] = df[group].mean(axis=1)
+
+    # Drop the original histogram columns
+    df.drop(columns=bin_columns, inplace=True, errors='ignore')
+
+    return df
+
+def add_color_statistics(df):
+    """
+    Adds summary statistics (mean, standard deviation, skewness, kurtosis)
+    for each color channel (R, G, B).
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing color features.
+
+    Returns:
+        pd.DataFrame: Updated DataFrame with summary statistics.
+    """
+    # Add statistics for each color channel
+    for channel in ['R', 'G', 'B']:
+        channel_columns = [f"{channel} Hist Bin Agg {i}" for i in range(64) if f"{channel} Hist Bin Agg {i}" in df.columns]
+
+        # Add summary statistics
+        if channel_columns:
+            df[f"{channel}_Mean"] = df[channel_columns].mean(axis=1)
+            df[f"{channel}_StdDev"] = df[channel_columns].std(axis=1)
+            df[f"{channel}_Skewness"] = df[channel_columns].skew(axis=1)
+            df[f"{channel}_Kurtosis"] = df[channel_columns].kurt(axis=1)
+
+    return df
+
+# Example usage
+# Load the color feature DataFrame
+# Replace 'color_features.csv' with your actual file
+df = pd.read_csv("/content/PurpleSapphireImagesColorFeature_extraction.csv")
+
+# Step 1: Aggregate histogram bins for R, G, and B channels
+df = aggregate_histogram_features(df, "R", bins=256, new_bins=64)
+df = aggregate_histogram_features(df, "G", bins=256, new_bins=64)
+df = aggregate_histogram_features(df, "B", bins=256, new_bins=64)
+
+# Step 2: Add summary statistics for R, G, and B channels
+df = add_color_statistics(df)
+
+# Save the transformed DataFrame
+output_file = "Aggregated_PurpleSapphireImagesColor_feature_aggregated.csv"
+df.to_csv(output_file, index=False)
+print(f"Transformed color features saved to '{output_file}'.")
