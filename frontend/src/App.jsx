@@ -1,10 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Home from './components/Home';
 import PriceCalculator from './components/PriceCalculator';
 import ProtectedRoute from './ProtectedRoute';
+
 
 const App = () => {
   return (

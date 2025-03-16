@@ -6,7 +6,7 @@ import Navbar from "./Navbar.jsx";
 import Disclaimer from "./Disclaimer.jsx";
 import Banner from "./Banner.jsx";
 import { useAuth } from "./AuthContext";
-
+import jsonData from "./encoded_features.json";
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
@@ -18,7 +18,7 @@ function Dropdown({ label, name, options, value, onChange }) {
         name={name} 
         value={value}
         onChange={onChange} 
-        className="select shadow rounded-xl py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline w-full"
+        className="select shadow rounded py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline w-full"
       >
         <option value=""></option>
         {Object.entries(options).map(([key, value]) => (
@@ -51,7 +51,6 @@ function InputText({ label, name, value, onChange }) {
 }
 
 const PriceCalculator = () => {
-  const [jsonData, setJsonData] = useState(null);
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -72,19 +71,7 @@ const PriceCalculator = () => {
     type: "",
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("/encoded_features.json");
-        if (!response.ok) throw new Error('Failed to load config');
-        setJsonData(await response.json());
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-        setError("Failed to load application configuration");
-      }
-    };
-    fetchData();
-  }, []);
+
 
 
   // Define allowed color options for each type
@@ -323,27 +310,27 @@ const PriceCalculator = () => {
     }).format(price);
   };
 
-  if (!jsonData) {
-    return <p>Loading...</p>;
-  }
   
   return (
     <>
     <Navbar />
     <Banner />
-    <div className="md:pr-[20px] bg-white rounded-xl bg-opacity-60 backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10  border border-gray-200 shadow-sm dark:bg-gray-800 pb-12 ">
+    <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border border-gray-200 shadow-xl  pb-12 ">
       
-      <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
+      <form onSubmit={handleSubmit} className="w-full max-w-5xl z-60 mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
       <div className="w-3/4">
         <FileUpload file={file} setFile={setFile} />
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex justify-center flex-col md:grid md:grid-cols-2 md:gap-x-10  w-full space-y-4 md:space-y-0">
+        <button 
+            type="button" 
+            onClick={handleSubmit} 
+            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
+          >Extract Feature from Image</button>
           <button 
             type="button" 
             onClick={handleSubmit} 
-            className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-          >
-            Extract Feature from Video
-          </button>
+            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
+          >Extract Feature from Video</button>
         </div>
       </div>
         <div>
@@ -428,15 +415,16 @@ const PriceCalculator = () => {
           
 
             {/* Predict Price (Only after attributes are filled) */}
-            <button type="button" onClick={handlePricePrediction} className={`bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
-                Predict Price
-            </button>
+            
             <button 
               type="button" 
               onClick={handleClear} 
               className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded"
             >
               Reset
+            </button>
+            <button type="button" onClick={handlePricePrediction} className={`bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
+                Predict Price
             </button>
         </div>
         {loading && (

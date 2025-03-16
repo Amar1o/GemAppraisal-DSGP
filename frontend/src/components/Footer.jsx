@@ -4,7 +4,7 @@ function Footer() {
       <div className="max-w-screen-xl mx-auto">
         <div className="flex flex-wrap items-center md:justify-between max-md:flex-col gap-6">
           <div>
-            <a href='javascript:void(0)'><img src="/logo.png" alt="logo" className='w-36 ' /></a>
+            <a href='javascript:void(0)'><img src="/ItSaphyre.png" alt="logo" className='w-36 ' /></a>
           </div>
 
           <ul className="flex items-center justify-center flex-wrap gap-y-2 md:justify-end space-x-6">

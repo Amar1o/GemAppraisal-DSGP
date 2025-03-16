@@ -18,7 +18,7 @@ const Login = () => {
       setSuccess('');
       setError('');
       setTimeout(() => {
-        navigate('/price-calculator');  // Redirect user to dashboard
+        navigate('/');  // Redirect user to dashboard
       }, 1000);
     }
   };
@@ -29,7 +29,7 @@ const Login = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <img
               alt="It Saphyre"
-              src="/logo.png"
+              src="/ItSaphyre.png"
               className="mx-auto h-12 w-auto"
             />
         <h2 className="mt-10 text-center text-2xl/9 tracking-tight font-bold text-gray-700">
