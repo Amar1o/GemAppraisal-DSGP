@@ -1,6 +1,6 @@
 function Disclaimer() {
     return (
-        <div className="bg-white py-24 sm:py-32 ">
+        <div className="bg-gray-50 py-24 sm:py-32 mt-20">
             <div className="mx-auto max-w-8xl px-6 lg:px-8">
                 <div className="mx-auto max-w-3xl text-center">
                     <p className="mt-2 text-3xl font-bold tracking-tight text-gray-700 sm:text-4xl">Disclaimer</p>
