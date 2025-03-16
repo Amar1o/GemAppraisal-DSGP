@@ -165,7 +165,9 @@ const PriceCalculator = () => {
   };
 
 
-  // Handle form submission
+
+
+  // Handle VIDEO submission
   const handleSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
@@ -239,9 +241,71 @@ const PriceCalculator = () => {
           setLoading(false);
       }
   };
+  
+
+  //Handle picture submission
+  const handleImageSubmit  = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      setError("");
+      setPrediction(null);
+
+      if (!file) {
+        setError("No file detected. Please upload an image.");
+        setLoading(false);
+        return;
+      }
+
+      const allowedImageTypes = ["image/jpeg", "image/png", "image/jpg"];
+      if (!allowedImageTypes.includes(file.file.type)) {
+        setError("Invalid file type. Please upload an image (JPEG, PNG, JPG).");
+        setLoading(false);
+        return;
+      }
+
+      const formData = new FormData();
+      if (file) formData.append("file", file.file);
+
+      try {
+        const response = await axios.post("http://127.0.0.1:5000/picture/upload_image", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (response.data.error) {
+          setError(response.data.error);
+          return;
+        }
+
+        const attributes = response.data.predicted_attributes;
+
+        if (!attributes) {
+          setError("Failed to extract attributes from image.");
+          return;
+        }
+
+        setSelectedValues((prev) => ({
+          ...prev,
+          clarity: attributes.clarity || "",
+          cut: attributes.cut || "",
+          shape: attributes.shape || "",
+        }));
+
+      } catch (err) {
+        setError("Error processing the image. Please try again.");
+        console.error("Prediction Error:", err.message);
+      } finally {
+        setLoading(false);
+      }
+  };
+   
+  
 
 
 
+
+
+
+  // PRICE PREDICT FUNCTION HANDLE SUMBIT
   const handlePricePrediction = async (e) => {
       e.preventDefault();
       setLoading(true);
