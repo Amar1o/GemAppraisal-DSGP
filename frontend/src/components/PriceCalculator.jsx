@@ -528,12 +528,12 @@ const PriceCalculator = () => {
         <button 
             type="button" 
             onClick={handleImageSubmit2} 
-            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
+            className="bg-amber-500 hover:bg-amber-700 text-white py-2 px-3 rounded"
           >Extract Feature from Image</button>
           <button 
             type="button" 
             onClick={handleSubmit} 
-            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
+            className="bg-amber-500 hover:bg-amber-700 text-white py-2 px-3 rounded"
           >Extract Feature from Video</button>
         </div>
       </div>
@@ -627,7 +627,7 @@ const PriceCalculator = () => {
             >
               Reset
             </button>
-            <button type="button" onClick={handlePricePrediction} className={`bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
+            <button type="button" onClick={handlePricePrediction} className={`bg-amber-500 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
                 Predict Price
             </button>
         </div>
