@@ -633,7 +633,7 @@ const PriceCalculator = () => {
         </div>
         
 
-        <div className="visibility-hidden min-h-[32px]">
+        <div className="visibility-hidden">
         <p className="text-red-500 mt-4 visibility-hidden">{error}</p>
         <p className="text-red-500 mt-4 visibility-hidden">{formError}</p>
         
@@ -644,11 +644,11 @@ const PriceCalculator = () => {
         
       </form>
       {loading && (
-            <p className="mx-auto h-[20px]">
+            <p className="mx-auto">
                 <Loader />
             </p>
         )}
-        <p className="text-right text-xl font-bold visibility-hidden mx-auto min-h-[32px]">
+        <p className="text-right text-xl font-bold visibility-hidden mx-auto">
           {prediction !== null ? `Estimated Price: ${formatPrice(prediction)}` : ""}
         </p>
     </div>
