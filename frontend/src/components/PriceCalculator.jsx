@@ -644,11 +644,11 @@ const PriceCalculator = () => {
         
       </form>
       {loading && (
-            <p className="mx-auto">
+            <p className="mx-auto mt-4 transition duration-500 ease-in-out">
                 <Loader />
             </p>
         )}
-        <p className="text-right text-xl font-bold visibility-hidden mx-auto">
+        <p className="text-right text-2xl text-gray-700 font-bold visibility-hidden mx-auto mt-4 transition duration-500 ease-in-out">
           {prediction !== null ? `Estimated Price: ${formatPrice(prediction)}` : ""}
         </p>
     </div>
