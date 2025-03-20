@@ -7,6 +7,7 @@ import Disclaimer from "./Disclaimer.jsx";
 import Banner from "./Banner.jsx";
 import { useAuth } from "./AuthContext";
 import jsonData from "./encoded_features.json";
+import Loader from "./Loader.jsx";
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
@@ -489,6 +490,7 @@ const PriceCalculator = () => {
     setFormError("");
     setError("");
     setPrediction(null);
+    setLoading(false);
   };
   
 
@@ -510,12 +512,19 @@ const PriceCalculator = () => {
     <>
     <Navbar />
     <Banner />
-    <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border-2 border-gray-200 shadow-xl  pb-12 ">
-      
+    <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border-3 border-gray-200 shadow-xl  pb-12 ">
+      {/* Instruction Section */}
+      <div className="px-6 py-4 mt-6 rounded-xl ml-[45px] mr-[20px]">
+        <h2 className="text-2xl font-bold text-gray-700">How to Use the Price Predictor</h2>
+        <p className="text-gray-600 mt-2 text-l">
+          Upload an image or video of your sapphire or ruby to extract its features automatically. 
+          Alternatively, you can manually select the attributes below. Once all fields are filled, click "Predict Price" to estimate the gemstone's value.
+        </p>
+      </div>
       <form onSubmit={handleSubmit} className="w-full max-w-5xl z-60 mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
       <div className="w-3/4">
         <FileUpload file={file} setFile={setFile} />
-        <div className="mt-8 flex justify-center flex-col md:grid md:grid-cols-2 md:gap-x-10  w-full space-y-4 md:space-y-0">
+        <div className="mt-8 flex justify-center flex-col md:grid md:grid-cols-2 md:gap-x-5  w-full space-y-4 md:space-y-0">
         <button 
             type="button" 
             onClick={handleImageSubmit2} 
@@ -622,22 +631,26 @@ const PriceCalculator = () => {
                 Predict Price
             </button>
         </div>
-        {loading && (
-            <p className="text-gray-600 font-semibold text-center mt-4">
-                Processing... Please wait.
-            </p>
-        )}
-
+        
 
         <div className="visibility-hidden min-h-[32px]">
         <p className="text-red-500 mt-4 visibility-hidden">{error}</p>
         <p className="text-red-500 mt-4 visibility-hidden">{formError}</p>
-        <p className="text-right text-xl font-bold visibility-hidden">
+        
+        </div>
+        
+
+        </div>
+        
+      </form>
+      {loading && (
+            <p className="mx-auto h-[20px]">
+                <Loader />
+            </p>
+        )}
+        <p className="text-right text-xl font-bold visibility-hidden mx-auto min-h-[32px]">
           {prediction !== null ? `Estimated Price: ${formatPrice(prediction)}` : ""}
         </p>
-        </div>
-        </div>
-      </form>
     </div>
     <Disclaimer />
     <Footer />

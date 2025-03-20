@@ -39,7 +39,7 @@ function Navbar() {
     };
 
     return (
-        <header className='shadow-md  font-[Inter] tracking-wide z-50 w-full sticky top-0  h-full bg-transparent bg-clip-padding backdrop-filter backdrop-blur-md'>
+        <header className='shadow-md  font-[Inter] tracking-wide z-50 w-full relative top-0  h-full bg-transparent bg-clip-padding backdrop-filter backdrop-blur-md'>
             <nav className=" border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
             <div className="flex flex-wrap justify-between items-center mx-auto ">
             <a href="/" className="flex">
