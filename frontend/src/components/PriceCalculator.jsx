@@ -515,8 +515,8 @@ const PriceCalculator = () => {
     <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border-3 border-gray-200 shadow-xl  pb-12 ">
       {/* Instruction Section */}
       <div className="px-6 py-4 mt-6 rounded-xl ml-[45px] mr-[20px]">
-        <h2 className="text-2xl font-bold text-gray-700">How to Use the Price Predictor</h2>
-        <p className="text-gray-600 mt-2 text-l">
+        <h2 className="text-3xl font-bold text-gray-700 text-center">How to Use the Price Calculator</h2>
+        <p className="text-gray-600 mt-2 text-l text-center">
           Upload an image or video of your sapphire or ruby to extract its features automatically. 
           Alternatively, you can manually select the attributes below. Once all fields are filled, click "Predict Price" to estimate the gemstone's value.
         </p>
@@ -528,12 +528,12 @@ const PriceCalculator = () => {
         <button 
             type="button" 
             onClick={handleImageSubmit2} 
-            className="bg-amber-500 hover:bg-amber-700 text-white py-2 px-3 rounded"
+            className="bg-blue-900 hover:bg-blue-700 text-white py-2 px-3 rounded"
           >Extract Feature from Image</button>
           <button 
             type="button" 
             onClick={handleSubmit} 
-            className="bg-amber-500 hover:bg-amber-700 text-white py-2 px-3 rounded"
+            className="bg-blue-900 hover:bg-blue-700 text-white py-2 px-3 rounded"
           >Extract Feature from Video</button>
         </div>
       </div>
@@ -627,7 +627,7 @@ const PriceCalculator = () => {
             >
               Reset
             </button>
-            <button type="button" onClick={handlePricePrediction} className={`bg-amber-500 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
+            <button type="button" onClick={handlePricePrediction} className={`bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
                 Predict Price
             </button>
         </div>
