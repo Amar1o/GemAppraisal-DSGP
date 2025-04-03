@@ -374,8 +374,15 @@ const PriceCalculator = () => {
       }
   
       const { predicted_class, probabilities, attributes } = classifyResponse.data;
-  
-      // Update the selected values with predicted class and attributes
+
+      // Check if the predicted class is non_sapphire
+      if (predicted_class === "non_sapphire") {
+        setError("This image may not contain a sapphire. Please upload a viable picture.");
+        setLoading(false);
+        return;
+      }
+      
+      // Otherwise, update the selected values with predicted class and attributes
       setSelectedValues((prev) => ({
         ...prev,
         color: attributes?.color || "",
