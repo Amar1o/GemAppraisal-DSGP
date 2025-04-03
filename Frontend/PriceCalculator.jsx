@@ -7,6 +7,7 @@ import Disclaimer from "./Disclaimer.jsx";
 import Banner from "./Banner.jsx";
 import { useAuth } from "./AuthContext";
 import jsonData from "./encoded_features.json";
+import Loader from "./Loader.jsx";
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
@@ -151,56 +152,57 @@ const PriceCalculator = () => {
     return true; // All fields are filled
   };
 
+  const classify = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setPrediction(null);
   
-const classify = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
-  setPrediction(null);
-
-  if (!file) {
-      setError("Please select a file before classifying.");
-      setLoading(false);
-      return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", file.file);
-
-  // Debugging log
-  console.log("Uploading file:", file.file);
-
-  try {
-      const response = await axios.post("http://127.0.0.1:5000/classify", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      console.log("Server Response:", response.data);
-
-      if (response.data.error) {
-          console.error("Backend Error:", response.data.error);
-          setError(response.data.error);
-          setLoading(false);
-          return;
-      }
-
-      const { predicted_class, probabilities, attributes } = response.data;
-
-      setSelectedValues((prev) => ({
-          ...prev,
-          color: attributes?.color || "",
-      }));
-
-      setPrediction({ predicted_class, probabilities });
-
-  } catch (err) {
-      console.error("Prediction Error:", err.response ? err.response.data : err.message);
-      setError("Error processing the classification. Please try again.");
-  } finally {
-      setLoading(false);
-  }
-};
-
+    if (!file) {
+        setError("Please select a file before classifying.");
+        setLoading(false);
+        return;
+    }
+  
+    const formData = new FormData();
+    formData.append("file", file.file);
+  
+    // Debugging log
+    console.log("Uploading file:", file.file);
+  
+    try {
+        const response = await axios.post("http://127.0.0.1:5000/classify", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+  
+        console.log("Server Response:", response.data);
+  
+        if (response.data.error) {
+            console.error("Backend Error:", response.data.error);
+            setError(response.data.error);
+            setLoading(false);
+            return;
+        }
+  
+        const { predicted_class, probabilities, attributes } = response.data;
+  
+        setSelectedValues((prev) => ({
+            ...prev,
+            color: attributes?.color || "",
+        }));
+  
+        setPrediction({ predicted_class, probabilities });
+  
+    } catch (err) {
+        console.error("Prediction Error:", err.response ? err.response.data : err.message);
+        setError("Error processing the classification. Please try again.");
+    } finally {
+        setLoading(false);
+    }
+  };
+  
+  
+  
 
 
   // Handle video submission
@@ -279,62 +281,61 @@ const classify = async (e) => {
   };
   
 
-  // //Handle picture submission
-  // const handleImageSubmit  = async (e) => {
-  //     e.preventDefault();
-  //     setLoading(true);
-  //     setError("");
-  //     setPrediction(null);
+  //Handle picture submission
+  const handleImageSubmit  = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      setError("");
+      setPrediction(null);
 
-  //     if (!file) {
-  //       setError("No file detected. Please upload an image.");
-  //       setLoading(false);
-  //       return;
-  //     }
+      if (!file) {
+        setError("No file detected. Please upload an image.");
+        setLoading(false);
+        return;
+      }
 
-  //     const allowedImageTypes = ["image/jpeg", "image/png", "image/jpg"];
-  //     if (!allowedImageTypes.includes(file.file.type)) {
-  //       setError("Invalid file type. Please upload an image (JPEG, PNG, JPG).");
-  //       setLoading(false);
-  //       return;
-  //     }
+      const allowedImageTypes = ["image/jpeg", "image/png", "image/jpg"];
+      if (!allowedImageTypes.includes(file.file.type)) {
+        setError("Invalid file type. Please upload an image (JPEG, PNG, JPG).");
+        setLoading(false);
+        return;
+      }
 
-  //     const formData = new FormData();
-  //     if (file) formData.append("file", file.file);
+      const formData = new FormData();
+      if (file) formData.append("file", file.file);
 
-  //     try {
-  //       const response = await axios.post("http://127.0.0.1:5000/picture/upload_image", formData, {
-  //         headers: { "Content-Type": "multipart/form-data" },
-  //       });
+      try {
+        const response = await axios.post("http://127.0.0.1:5000/picture/upload_image", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
-  //       if (response.data.error) {
-  //         setError(response.data.error);
-  //         return;
-  //       }
+        if (response.data.error) {
+          setError(response.data.error);
+          return;
+        }
 
-  //       const attributes = response.data.predicted_attributes;
+        const attributes = response.data.predicted_attributes;
 
-  //       if (!attributes) {
-  //         setError("Failed to extract attributes from image.");
-  //         return;
-  //       }
+        if (!attributes) {
+          setError("Failed to extract attributes from image.");
+          return;
+        }
 
-  //       setSelectedValues((prev) => ({
-  //         ...prev,
-  //         clarity: attributes.clarity || "",
-  //         cut: attributes.cut || "",
-  //         shape: attributes.shape || "",
-  //       }));
+        setSelectedValues((prev) => ({
+          ...prev,
+          clarity: attributes.clarity || "",
+          cut: attributes.cut || "",
+          shape: attributes.shape || "",
+        }));
 
-  //     } catch (err) {
-  //       setError("Error processing the image. Please try again.");
-  //       console.error("Prediction Error:", err.message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  // };
-   
-  const handleImageSubmit = async (e) => {
+      } catch (err) {
+        setError("Error processing the image. Please try again.");
+        console.error("Prediction Error:", err.message);
+      } finally {
+        setLoading(false);
+      }
+  };
+  const handleImageSubmit2 = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -373,14 +374,21 @@ const classify = async (e) => {
       }
   
       const { predicted_class, probabilities, attributes } = classifyResponse.data;
-  
-      // Update the selected values with predicted class and attributes
+
+      // Check if the predicted class is non_sapphire
+      if (predicted_class === "non_sapphire") {
+        setError("This image may not contain a sapphire. Please upload a viable picture.");
+        setLoading(false);
+        return;
+      }
+      
+      // Otherwise, update the selected values with predicted class and attributes
       setSelectedValues((prev) => ({
         ...prev,
         color: attributes?.color || "",
       }));
   
-      setPrediction({ predicted_class, probabilities });
+      // use something else to display probability setPrediction({ predicted_class, probabilities });
   
       // Then, get more information about the image (Upload Image pipeline)
       const uploadImageResponse = await axios.post("http://127.0.0.1:5000/picture/upload_image", formData, {
@@ -416,7 +424,6 @@ const classify = async (e) => {
       setLoading(false);
     }
   };
-  
   
 
 
@@ -490,6 +497,7 @@ const classify = async (e) => {
     setFormError("");
     setError("");
     setPrediction(null);
+    setLoading(false);
   };
   
 
@@ -511,21 +519,28 @@ const classify = async (e) => {
     <>
     <Navbar />
     <Banner />
-    <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border border-gray-200 shadow-xl  pb-12 ">
-      
+    <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border-3 border-gray-200 shadow-xl  pb-12 ">
+      {/* Instruction Section */}
+      <div className="px-6 py-4 mt-6 rounded-xl ml-[45px] mr-[20px]">
+        <h2 className="text-3xl font-bold text-gray-700 text-center">How to Use the Price Calculator</h2>
+        <p className="text-gray-600 mt-2 text-l text-center">
+          Upload an image or video of your sapphire or ruby to extract its features automatically. 
+          Alternatively, you can manually select the attributes below. Once all fields are filled, click "Predict Price" to estimate the gemstone's value.
+        </p>
+      </div>
       <form onSubmit={handleSubmit} className="w-full max-w-5xl z-60 mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
       <div className="w-3/4">
         <FileUpload file={file} setFile={setFile} />
-        <div className="mt-8 flex justify-center flex-col md:grid md:grid-cols-2 md:gap-x-10  w-full space-y-4 md:space-y-0">
+        <div className="mt-8 flex justify-center flex-col md:grid md:grid-cols-2 md:gap-x-5  w-full space-y-4 md:space-y-0">
         <button 
             type="button" 
-            onClick={handleImageSubmit} 
-            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
+            onClick={handleImageSubmit2} 
+            className="bg-blue-900 hover:bg-blue-700 text-white py-2 px-3 rounded"
           >Extract Feature from Image</button>
           <button 
             type="button" 
             onClick={handleSubmit} 
-            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-3 rounded"
+            className="bg-blue-900 hover:bg-blue-700 text-white py-2 px-3 rounded"
           >Extract Feature from Video</button>
         </div>
       </div>
@@ -619,26 +634,30 @@ const classify = async (e) => {
             >
               Reset
             </button>
-            <button type="button" onClick={handlePricePrediction} className={`bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
+            <button type="button" onClick={handlePricePrediction} className={`bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
                 Predict Price
             </button>
         </div>
-        {loading && (
-            <p className="text-gray-600 font-semibold text-center mt-4">
-                Processing... Please wait.
-            </p>
-        )}
+        
 
-
-        <div className="visibility-hidden min-h-[32px]">
+        <div className="visibility-hidden">
         <p className="text-red-500 mt-4 visibility-hidden">{error}</p>
         <p className="text-red-500 mt-4 visibility-hidden">{formError}</p>
-        <p className="text-right text-xl font-bold visibility-hidden">
+        
+        </div>
+        
+
+        </div>
+        
+      </form>
+      {loading && (
+            <p className="mx-auto mt-4 transition duration-500 ease-in-out">
+                <Loader />
+            </p>
+        )}
+        <p className="text-right text-2xl text-gray-700 font-bold visibility-hidden mx-auto mt-4 transition duration-500 ease-in-out">
           {prediction !== null ? `Estimated Price: ${formatPrice(prediction)}` : ""}
         </p>
-        </div>
-        </div>
-      </form>
     </div>
     <Disclaimer />
     <Footer />
