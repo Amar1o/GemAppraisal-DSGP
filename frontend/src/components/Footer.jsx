@@ -10,7 +10,7 @@ function Footer() {
           <ul className="flex items-center justify-center flex-wrap gap-y-2 md:justify-end space-x-6">
             <li><a href="/" className="text-gray-300 hover:underline text-base">Home</a></li>
             <li><a href="/#About" className="text-gray-300 hover:underline text-base">About</a></li>
-            <li><a href="/#Services" className="text-gray-300 hover:underline text-base">Services</a></li>
+            <li><a href="/#Team" className="text-gray-300 hover:underline text-base">Team</a></li>
             <li><a href="/#Contact" className="text-gray-300 hover:underline text-base">Contact</a></li>
           </ul>
         </div>

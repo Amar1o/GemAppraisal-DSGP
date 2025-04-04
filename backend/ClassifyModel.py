@@ -3,54 +3,72 @@ import os
 import cv2
 import numpy as np
 import joblib
+import pickle
 from rembg import remove
+from PIL import Image
 
 # Blueprint for prediction routes
 image_routes = Blueprint("image_routes", __name__)
 
-MODEL_PATH = "models/sapphire_modelbalanced.pkl"
+MODEL_PATH = "models/sapphire_model2.pkl"
+CLASS_NAMES = ["green_sapphire", "blue_sapphire", "non_sapphire"]
 
 # Load the trained model
-classification_model = joblib.load(MODEL_PATH)
+with open(MODEL_PATH, 'rb') as model_file:
+    classification_model = pickle.load(model_file)
 
-def extract_color_histogram(image):
-    image = cv2.resize(image, (128, 128))  # Resize to match the training size
-    hist_features = []
-    for i in range(3):  # BGR channels
-        hist = cv2.calcHist([image], [i], None, [256], [0, 256])
-        hist = cv2.normalize(hist, hist).flatten()  
-        hist_features.extend(hist)
-    return np.array(hist_features)
 
-def predict_class(image_path, model):
-    current_app.logger.debug(f"Using model for prediction: {model}")
+def extract_color_features(image_path):
+    """
+    Extract color features from the image.
+    """
+    image = cv2.imread(image_path)
+    if image is None:
+        raise ValueError(f"Error loading image: {image_path}")
 
-    with open(image_path, "rb") as image_file:
-        input_image = image_file.read()
-
+    # Remove background
+    pil_img = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     try:
-        final_image_data = remove(input_image)
+        img_no_bg = remove(pil_img)
+        img_no_bg = np.array(img_no_bg)
     except Exception as e:
-        raise ValueError(f"Error removing background: {str(e)}")
+        raise ValueError(f"Failed to remove background: {e}")
 
-    save_folder = r"backend/images"
-    os.makedirs(save_folder, exist_ok=True)  
-    save_path = os.path.join(save_folder, "processed_image.jpg")
+    rgb_image = cv2.cvtColor(img_no_bg, cv2.COLOR_RGBA2RGB)
 
-    np_array = np.frombuffer(final_image_data, np.uint8)
-    final_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+    # Color histograms
+    r_hist, _ = np.histogram(rgb_image[:, :, 0], bins=256, range=(0, 256))
+    g_hist, _ = np.histogram(rgb_image[:, :, 1], bins=256, range=(0, 256))
+    b_hist, _ = np.histogram(rgb_image[:, :, 2], bins=256, range=(0, 256))
 
-    if final_image is None:
-        raise ValueError("Error decoding the image after background removal.")
+    r_hist = r_hist / np.sum(r_hist)
+    g_hist = g_hist / np.sum(g_hist)
+    b_hist = b_hist / np.sum(b_hist)
 
-    cv2.imwrite(save_path, final_image)
-    current_app.logger.debug(f"Processed image saved at: {save_path}")
+    # Average color values
+    avg_r = np.mean(rgb_image[:, :, 0])
+    avg_g = np.mean(rgb_image[:, :, 1])
+    avg_b = np.mean(rgb_image[:, :, 2])
 
-    test_image_features = extract_color_histogram(final_image).reshape(1, -1)
-    predicted_class = model.predict(test_image_features)
-    predicted_probabilities = model.predict_proba(test_image_features)
+    return np.concatenate([r_hist, g_hist, b_hist, [avg_r, avg_g, avg_b]])
 
-    return str(predicted_class[0]), predicted_probabilities.tolist()
+
+def predict_class(image_path, model, class_names):
+    """
+    Predict the class of a given image using a trained model.
+    """
+    test_image_features = extract_color_features(image_path)
+    if test_image_features is None:
+        return None, None
+
+    test_image_features = test_image_features.reshape(1, -1)
+
+    predicted_class_index = model.predict(test_image_features)[0]
+    predicted_class = class_names[predicted_class_index]
+    predicted_probabilities = model.predict_proba(test_image_features)[0].tolist()
+
+    return predicted_class, predicted_probabilities
+
 
 @image_routes.route("/classify", methods=["POST"])
 def classify():
@@ -58,29 +76,34 @@ def classify():
         current_app.logger.debug(f"Received data: {request.form}")
         current_app.logger.debug(f"Received files: {request.files}")
 
-        predicted_class, predicted_probabilities = None, None  
-        predicted_attributes = {}
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
 
-        if 'file' in request.files:
-            file = request.files['file']
-            if file.filename != '':
-                image_path = 'temp_image.jpg'
-                file.save(image_path)
-                predicted_class, predicted_probabilities = predict_class(image_path, classification_model)
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "Empty filename"}), 400
 
-                class_parts = predicted_class.split("_")
-                color = class_parts[0].capitalize() if len(class_parts) > 1 else "Unknown"
+        image_path = 'temp_image.jpg'
+        file.save(image_path)
 
-                predicted_attributes = {"color": color}
+        predicted_class, predicted_probabilities = predict_class(image_path, classification_model, CLASS_NAMES)
 
-                current_app.logger.debug(f"Predicted Class: {predicted_class}")
-                current_app.logger.debug(f"Class Probabilities: {predicted_probabilities}")
-                current_app.logger.debug(f"Predicted Attributes: {predicted_attributes}")
+        if predicted_class is None:
+            return jsonify({"error": "Prediction failed"}), 500
+
+        class_parts = predicted_class.split("_")
+        color = class_parts[0].capitalize() if len(class_parts) > 1 else "Unknown"
+
+        predicted_attributes = {"color": color}
+
+        current_app.logger.debug(f"Predicted Class: {predicted_class}")
+        current_app.logger.debug(f"Class Probabilities: {predicted_probabilities}")
+        current_app.logger.debug(f"Predicted Attributes: {predicted_attributes}")
 
         return jsonify({
             "predicted_class": predicted_class,
             "probabilities": predicted_probabilities,
-            "attributes": predicted_attributes  
+            "attributes": predicted_attributes
         })
 
     except ValueError as ve:

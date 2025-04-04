@@ -39,7 +39,7 @@ function Navbar() {
     };
 
     return (
-        <header className='shadow-md  font-[Inter] tracking-wide z-50 w-full sticky top-0  h-full bg-transparent bg-clip-padding backdrop-filter backdrop-blur-md'>
+        <header className='shadow-md  font-[Inter] tracking-wide z-50 w-full relative top-0  h-full bg-transparent bg-clip-padding backdrop-filter backdrop-blur-md'>
             <nav className=" border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
             <div className="flex flex-wrap justify-between items-center mx-auto ">
             <a href="/" className="flex">
@@ -57,13 +57,13 @@ function Navbar() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => navigate("/login")}
-                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded shadow-md"
+                                className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-3 rounded-xl shadow-2xl "
                             >
                                 Login
                             </button>
                             <button
                                 onClick={() => navigate("/signup")}
-                                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded shadow-md"
+                                className="bg-white hover:bg-cyan-600 text-cyan-600 hover:text-white font-bold py-2 px-3 rounded-xl shadow-2xl border-2 border-cyan-600"
                             >
                                 Sign Up
                             </button>

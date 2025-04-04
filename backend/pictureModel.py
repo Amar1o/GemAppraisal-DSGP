@@ -180,8 +180,3 @@ def upload_image():
         "message": "Processing complete",
         "predicted_attributes": predictions
     })
-
-
-
-
-

@@ -44,7 +44,7 @@ const Hero = () => {
 
 // About Section
 const About = () => (
-  <section id="about" className="py-16 px-6 text-center bg-gray-100">
+  <section id="about" className="py-16 px-6 text-center bg-gray-50">
     <h2 className="text-3xl font-bold text-gray-800">About Us</h2>
     <div className="mt-4 max-w-3xl mx-auto text-gray-600 leading-relaxed text-lg">
       
@@ -114,7 +114,7 @@ const Team = () => {
 
 // Contact Section
 const Contact = () => (
-  <section id="contact" className="py-16 px-6 text-center bg-gray-100">
+  <section id="contact" className="py-16 px-6 text-center bg-gray-50">
     <h2 className="text-3xl font-bold text-gray-800">Contact Us</h2>
     <p className="mt-4 text-gray-600">We’d love to hear from you! Fill out the form below.</p>
     <form className="mt-6 max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -127,7 +127,7 @@ const Contact = () => (
       <div className="mb-4">
         <textarea placeholder="Your Message" className="w-full p-3 border border-gray-300 rounded"></textarea>
       </div>
-      <button type="submit" className="w-full bg-blue-500 hover:bg-blue-700 text-white py-2 rounded">Send Message</button>
+      <button type="submit" className="w-full bg-cyan-500 hover:bg-cyan-700 text-white py-2 rounded">Send Message</button>
     </form>
   </section>
 );
