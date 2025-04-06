@@ -1,12 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
+import LoaderRound from './LoaderRound.jsx'
 
 const Loader = () => {
   return (
     <StyledWrapper>
       <div className="card">
         <div className="loader">
-          <p>Did you know:</p>
+          <LoaderRound />
           <div className="words">
             <span className="word">Blue sapphires are the most famous kind.</span>
             <span className="word">They're made of the mineral corundum.</span>
@@ -27,6 +28,8 @@ const StyledWrapper = styled.div`
     background-color: var(--bg-color);
     padding: 1rem 2rem;
     border-radius: 1.25rem;
+    margin-left: auto;
+    margin-right: auto;
   }
   .loader {
     color: rgb(124, 124, 124);

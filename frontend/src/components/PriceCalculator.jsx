@@ -9,6 +9,7 @@ import { useAuth } from "./AuthContext";
 import jsonData from "./encoded_features.json";
 import Loader from "./Loader.jsx";
 import LoaderInfo from "./LoaderInfo.jsx";
+import LoaderRound from "./LoaderRound.jsx";
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
@@ -652,10 +653,10 @@ const PriceCalculator = () => {
       </form>
       {loading && (
             <p className="mx-auto mt-4 transition duration-500 ease-in-out">
-                <Loader />
+                <LoaderRound />
             </p>
         )}
-        <p className="text-right text-2xl text-gray-700 font-bold visibility-hidden mx-auto mt-4 transition duration-500 ease-in-out">
+        <p className="text-right text-2xl text-gray-700 font-bold visibility-hidden mx-auto mt-4 transition duration-500 ease-in-out lg:px-[340px] lg:mr-[45px] lg:ml-[67px] lg:text-white lg:bg-gray-700 lg:p-2 lg:rounded mb-[10px]">
           {prediction !== null ? `Estimated Price: ${formatPrice(prediction)}` : ""}
         </p>
     </div>
