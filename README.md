@@ -20,7 +20,7 @@ Itsaphyre is a machine learning-powered web application that provides accurate, 
 ## ✨ Features
 
 - 📷 Upload sapphire images for instant AI appraisal  
-- 🔎 Predicts gem characteristics: clarity, color, cut   
+- 🔎 Predicts gem characteristics: color, cut and clarity     
 - 💰 Provides estimated market value using ML regression  
 - 🔐 Secure login & user data handling via Supabase Auth  
 - 📚 Appraisal history saved to supabase
@@ -33,7 +33,7 @@ Itsaphyre is a machine learning-powered web application that provides accurate, 
 
 1. **User uploads sapphire image or video** through the web interface  
 2. **Image/video is preprocessed** and passed to a trained MobileNetV2 model  
-3. **AI model classifies features** like clarity and color  
+3. **AI model classifies features** like color, cut and clarity  
 4. **Regression model estimates value** based on trained market data  
 5. **User sees results**, estimated market value available 
 
