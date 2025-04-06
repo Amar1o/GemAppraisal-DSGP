@@ -57,13 +57,13 @@ function Navbar() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => navigate("/login")}
-                                className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-3 rounded-xl shadow-2xl "
+                                className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-3 rounded shadow-2xl "
                             >
                                 Login
                             </button>
                             <button
                                 onClick={() => navigate("/signup")}
-                                className="bg-white hover:bg-cyan-600 text-cyan-600 hover:text-white font-bold py-2 px-3 rounded-xl shadow-2xl border-2 border-cyan-600"
+                                className="bg-white hover:bg-slate-600 text-slate-600 hover:text-white font-bold py-2 px-3 rounded shadow-2xl border-2 border-slate-600"
                             >
                                 Sign Up
                             </button>

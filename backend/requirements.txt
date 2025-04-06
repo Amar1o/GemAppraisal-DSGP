@@ -13,4 +13,6 @@ pillow
 rembg
 onnxruntime
 tensorflow
-
+imbalanced-learn
+matplotlib
+imblearn
