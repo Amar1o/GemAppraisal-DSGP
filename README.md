@@ -7,12 +7,13 @@ Itsaphyre is a machine learning-powered web application that provides accurate, 
 
 ## 📸 Demo
 
-> **Insert your UI screenshots below**
 - Upload Interface  
   ![alt text](image.png)
 
-- Appraisal Results Page  
   ![alt text](image-1.png)
+
+  ![alt text](image-2.png)
+  ![alt text](image-3.png)
 
 ---
 
