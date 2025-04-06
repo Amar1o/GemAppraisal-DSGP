@@ -656,9 +656,11 @@ const PriceCalculator = () => {
                 <LoaderRound />
             </p>
         )}
-        <p className="text-right text-2xl text-gray-700 font-bold visibility-hidden mx-auto mt-4 transition duration-500 ease-in-out lg:px-[340px] lg:mr-[45px] lg:ml-[67px] lg:text-white lg:bg-gray-700 lg:p-2 lg:rounded mb-[10px]">
-          {prediction !== null ? `Estimated Price: ${formatPrice(prediction)}` : ""}
-        </p>
+        {prediction !== null && (
+          <p className="text-right text-2xl text-gray-700 font-bold mx-auto mt-4 transition duration-500 ease-in-out lg:px-[340px] lg:mr-[45px] lg:ml-[67px] lg:text-white lg:bg-gray-700 lg:p-2 lg:rounded mb-[10px]">
+            Estimated Price: {formatPrice(prediction)}
+          </p>
+        )}
     </div>
     <Disclaimer />
     <Footer />
