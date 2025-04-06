@@ -1,16 +1,14 @@
-# Itsaphyre 🔮  
+# ItSaphyre 🔮  
 *AI-Powered Sapphire Appraisal System*
 
-Itsaphyre is a machine learning-powered web application that provides accurate, data-driven appraisals for sapphires based on uploaded images. Built with the Sri Lankan gem industry in mind, Itsaphyre uses deep learning and statistical modeling to identify key gem characteristics and estimate market value, empowering traders, collectors, and enthusiasts with instant digital evaluations.
+ItSaphyre is a machine learning-powered web application that provides accurate, data-driven appraisals for sapphires based on uploaded images. Built with the Sri Lankan gem industry in mind, ItSaphyre uses deep learning and statistical modeling to identify key gem characteristics and estimate market value, empowering traders, collectors, and enthusiasts with instant digital evaluations.
 
 ---
 
 ## 📸 Demo
 
-- Upload Interface  
   ![alt text](image.png)
-
-  ![alt text](image-1.png)
+  ![alt text](image-5.png)
 
   ![alt text](image-2.png)
   ![alt text](image-3.png)
