@@ -8,6 +8,7 @@ const Loader = () => {
       <div className="card">
         <div className="loader">
           <LoaderRound />
+          <p>&nbsp;&nbsp;Did you know:</p>
           <div className="words">
             <span className="word">Blue sapphires are the most famous kind.</span>
             <span className="word">They're made of the mineral corundum.</span>
