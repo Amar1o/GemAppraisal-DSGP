@@ -1,21 +1,14 @@
-# GemAppraisal-DSGP
-Gem appraisal for sapphires and Rubys
+## Model Performance Evaluation
 
-## Multi-Label Classification Model Performance Summary
-
-### Default and Tuned Model Results
-
-| Model                  | Train Accuracy | Validation Accuracy | Test Accuracy | Train F1-Score | Validation F1-Score | Test F1-Score |
-|------------------------|----------------|---------------------|---------------|----------------|---------------------|---------------|
-| **Default SVM**         | 0.9079         | 0.9123              | 0.9057        | 0.7606         | 0.7725              | 0.7503        |
-| **Tuned SVM**           | 0.9938         | 0.9734              | 0.9789        | 0.9863         | 0.9415              | 0.9284        |
-| **Default Random Forest** | 0.8356       | 0.7569              | 0.7625        | 0.9564         | 0.9296              | 0.9323        |
-| **Tuned Random Forest** | 0.9941         | 0.9001              | 0.9079        | 0.9986         | 0.9657              | 0.9601        |
-| **Default Gradient Boosting** | 0.9993   | 0.9789              | 0.9789        | 0.9986         | 0.9493              | 0.9425        |
-| **Tuned Gradient Boosting** | 1.0000     | 0.9822              | 0.9834        | 1.0000         | 0.9583              | 0.9476        |
+| Model             | Description                         | Train F1-Score (micro) | Train Hamming Loss | Validate F1-Score (micro) | Validate Hamming Loss | Test F1-Score (micro) | Test Hamming Loss |
+|------------------|---------------------------------|------------------|---------------|------------------|---------------|------------------|---------------|
+| Logistic Regression | Used OneVsRestClassifier      | 38.4%            | 4.7%          | 38.4%            | 4.7%          | 38.3%            | 4.7%          |
+| XGBoost           | Used MultiOutputClassifier     | 92.9%            | 0.8%          | 86.3%            | 1.4%          | 86.3%            | 1.4%          |
+| Random Forest     | Used MultiOutputClassifier     | 99.8%            | 0.01%         | 89.4%            | 1.1%          | 89.4%            | 1.1%          |
 
 
 
 
 
-![model](https://github.com/user-attachments/assets/0473ae92-7d3e-4c0f-8de3-f0d75c659617)
+
+![hammingLoss](https://github.com/user-attachments/assets/54c11604-f673-4c46-905c-f68e097cb6d5)
