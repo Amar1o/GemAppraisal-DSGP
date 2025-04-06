@@ -127,7 +127,7 @@ const Contact = () => (
       <div className="mb-4">
         <textarea placeholder="Your Message" className="w-full p-3 border border-gray-300 rounded"></textarea>
       </div>
-      <button type="submit" className="w-full bg-cyan-500 hover:bg-cyan-700 text-white py-2 rounded">Send Message</button>
+      <button type="submit" className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded">Send Message</button>
     </form>
   </section>
 );

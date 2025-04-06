@@ -18,7 +18,7 @@ const Login = () => {
       setSuccess('');
       setError('');
       setTimeout(() => {
-        navigate('/');  // Redirect user to dashboard
+        navigate('/price-calculator');  // Redirect user to dashboard
       }, 1000);
     }
   };
