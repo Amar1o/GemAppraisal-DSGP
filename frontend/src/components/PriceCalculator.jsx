@@ -8,6 +8,7 @@ import Banner from "./Banner.jsx";
 import { useAuth } from "./AuthContext";
 import jsonData from "./encoded_features.json";
 import Loader from "./Loader.jsx";
+import LoaderInfo from "./LoaderInfo.jsx";
 
 // Dropdown component
 function Dropdown({ label, name, options, value, onChange }) {
@@ -519,13 +520,12 @@ const PriceCalculator = () => {
     <>
     <Navbar />
     <Banner />
-    <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border-3 border-gray-200 shadow-xl  pb-12 ">
+    <div className="md:pr-[20px] bg-white rounded-xl backdrop-filter backdrop-blur-lg w-full max-w-6xl mx-auto flex flex-col mt-10 z-60  border-2 border-gray-200 shadow-xl  pb-6 ">
       {/* Instruction Section */}
       <div className="px-6 py-4 mt-6 rounded-xl ml-[45px] mr-[20px]">
-        <h2 className="text-3xl font-bold text-gray-700 text-center">How to Use the Price Calculator</h2>
-        <p className="text-gray-600 mt-2 text-l text-center">
+        <p className="text-gray-600 mt-2 text-base text-center"><b>How to Use the Price Calculator: </b>
           Upload an image or video of your sapphire or ruby to extract its features automatically. 
-          Alternatively, you can manually select the attributes below. Once all fields are filled, click "Predict Price" to estimate the gemstone's value.
+          <br />Alternatively, you can manually select the attributes below. Once all fields are filled, click "Predict Price" to estimate the gemstone's value.
         </p>
       </div>
       <form onSubmit={handleSubmit} className="w-full max-w-5xl z-60 mx-auto flex flex-col md:flex-row gap-10 mt-12 items-center md:items-start px-4 ">
@@ -535,12 +535,12 @@ const PriceCalculator = () => {
         <button 
             type="button" 
             onClick={handleImageSubmit2} 
-            className="bg-blue-900 hover:bg-blue-700 text-white py-2 px-3 rounded"
+            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded"
           >Extract Feature from Image</button>
           <button 
             type="button" 
             onClick={handleSubmit} 
-            className="bg-blue-900 hover:bg-blue-700 text-white py-2 px-3 rounded"
+            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded"
           >Extract Feature from Video</button>
         </div>
       </div>
@@ -634,7 +634,7 @@ const PriceCalculator = () => {
             >
               Reset
             </button>
-            <button type="button" onClick={handlePricePrediction} className={`bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
+            <button type="button" onClick={handlePricePrediction} className={`bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded ${!validateForm() ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!validateForm()}>
                 Predict Price
             </button>
         </div>

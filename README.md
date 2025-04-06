@@ -1,21 +1,60 @@
-# GemAppraisal-DSGP
-Gem appraisal for sapphires and Rubys
+# Itsaphyre 🔮  
+*AI-Powered Sapphire Appraisal System*
 
-## Multi-Label Classification Model Performance Summary
+Itsaphyre is a machine learning-powered web application that provides accurate, data-driven appraisals for sapphires based on uploaded images. Built with the Sri Lankan gem industry in mind, Itsaphyre uses deep learning and statistical modeling to identify key gem characteristics and estimate market value, empowering traders, collectors, and enthusiasts with instant digital evaluations.
 
-### Default and Tuned Model Results
+---
 
-| Model                  | Train Accuracy | Validation Accuracy | Test Accuracy | Train F1-Score | Validation F1-Score | Test F1-Score |
-|------------------------|----------------|---------------------|---------------|----------------|---------------------|---------------|
-| **Default SVM**         | 0.9079         | 0.9123              | 0.9057        | 0.7606         | 0.7725              | 0.7503        |
-| **Tuned SVM**           | 0.9938         | 0.9734              | 0.9789        | 0.9863         | 0.9415              | 0.9284        |
-| **Default Random Forest** | 0.8356       | 0.7569              | 0.7625        | 0.9564         | 0.9296              | 0.9323        |
-| **Tuned Random Forest** | 0.9941         | 0.9001              | 0.9079        | 0.9986         | 0.9657              | 0.9601        |
-| **Default Gradient Boosting** | 0.9993   | 0.9789              | 0.9789        | 0.9986         | 0.9493              | 0.9425        |
-| **Tuned Gradient Boosting** | 1.0000     | 0.9822              | 0.9834        | 1.0000         | 0.9583              | 0.9476        |
+## 📸 Demo
+
+> **Insert your UI screenshots below**
+- Upload Interface  
+  ![alt text](image.png)
+
+- Appraisal Results Page  
+  ![alt text](image-1.png)
+
+---
+
+## ✨ Features
+
+- 📷 Upload sapphire images for instant AI appraisal  
+- 🔎 Predicts gem characteristics: clarity, color, cut quality  
+- 💰 Provides estimated market value using ML regression  
+- 🔐 Secure login & user data handling via Supabase Auth  
+- 📚 Appraisal history saved to supabase
+- 🌍 Tailored for sapphires native to Sri Lanka and around the world
+- 📦 Clean UI/UX for smooth user experience  
+
+---
+
+## 🧠 How It Works
+
+1. **User uploads sapphire image or video** through the web interface  
+2. **Image/video is preprocessed** and passed to a trained MobileNetV2 model  
+3. **AI model classifies features** like clarity and color  
+4. **Regression model estimates value** based on trained market data  
+5. **User sees results**, estimated market value available 
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- React
+- TailwindCSS
+
+### Backend
+- Python
+- Flask
+- TensorFlow / Keras
+- Scikit-learn (for regression-based value estimation)
+
+### Storage & Authentication
+- Supabase (PostgreSQL)
+  - User authentication
+  - Storing sapphire details and reports
+
+---
 
 
-
-
-
-![model](https://github.com/user-attachments/assets/0473ae92-7d3e-4c0f-8de3-f0d75c659617)

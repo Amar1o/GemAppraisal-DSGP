@@ -25,7 +25,7 @@ const Login = () => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center before:absolute before:w-full before:h-full before:inset-0 before:bg-black before:opacity-50 before:z-10" style={{ backgroundImage: "url('/login_image.jpg')" }}>
-    <div className="z-40 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white shadow-[0_4px_12px_-5px_rgba(0,0,0,0.4)] w-full max-w-sm rounded-lg font-[Open Sans] overflow-hidden mx-auto opacity-90">
+    <div className="z-40 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white shadow-[4px_12px_12px_5px_rgba(0,0,0,0.6)] w-full max-w-sm rounded-lg font-[Open Sans] overflow-hidden mx-auto opacity-90">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <img
               alt="It Saphyre"
